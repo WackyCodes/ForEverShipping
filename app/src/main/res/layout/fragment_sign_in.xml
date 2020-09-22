@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layout xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:bind="http://schemas.android.com/apk/res-auto">
+
+<data>
+    <variable
+        name="viewModel"
+        type="ean.ecom.ean_shipping.launching.fragment.LogInViewModel" />
+</data>
+
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary">
+
+    <ScrollView
+        android:id="@+id/scrollView2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="4dp"
+        android:background="@drawable/back_sign_in_design"
+        bind:layout_constraintBottom_toBottomOf="parent"
+        bind:layout_constraintEnd_toEndOf="parent"
+        bind:layout_constraintHorizontal_bias="0.0"
+        bind:layout_constraintStart_toStartOf="parent"
+        bind:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginBottom="60dp"
+                android:src="@mipmap/logo_t_round" />
+
+
+            <EditText
+                android:id="@+id/sign_in_email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="12dp"
+                android:layout_marginRight="12dp"
+                android:background="@drawable/back_rectangle_layout"
+                android:drawableLeft="@drawable/ic_phone_black_24dp"
+                android:drawablePadding="4dp"
+                android:drawableTint="@color/colorPrimary"
+                android:hint="Enter your Mobile"
+                android:inputType="number"
+                android:maxLength="10"
+                android:padding="8dp"
+                android:singleLine="true"
+                android:text="@={viewModel.userEmail}"
+                android:textColor="@color/colorPrimary" />
+
+            <!--            Login Layout  -->
+            <LinearLayout
+                android:id="@+id/login_layout"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginBottom="4dp"
+                android:orientation="vertical">
+
+                <EditText
+                    android:id="@+id/sign_in_password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/back_rectangle_layout"
+                    android:drawableLeft="@drawable/ic_lock_black_24dp"
+                    android:drawablePadding="4dp"
+                    android:drawableTint="@color/colorPrimary"
+                    android:hint="Password"
+                    android:inputType="textPassword"
+                    android:maxLength="10"
+                    android:padding="8dp"
+                    android:singleLine="true"
+                    android:text="@={viewModel.userPassword}"
+                    android:textColor="@color/colorPrimary" />
+
+                <TextView
+                    android:id="@+id/forget_password_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    android:text="Forget Password?"
+                    android:textColor="@color/colorPrimary"
+                    android:textSize="16dp"
+                    android:textStyle="bold"
+                    android:onClick="@{()-> viewModel.onForgetPasswordClick()}"/>
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="32dp"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginRight="4dp"
+                    android:background="@drawable/back_rectangle_layout"
+                    android:backgroundTint="@color/colorPrimary"
+                    android:onClick="@{()-> viewModel.onLoginClicked()}"
+                    android:text="LOGIN"
+                    android:textColor="@color/colorWhite"
+                    bind:toastMessage="@{viewModel.toastMessage}" />
+
+
+            </LinearLayout>
+            <!--            Sign In Layout  -->
+            <LinearLayout
+                android:id="@+id/sign_up_layout"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="8dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginRight="8dp"
+                android:layout_marginBottom="4dp"
+                android:orientation="vertical">
+
+                <EditText
+                    android:id="@+id/sign_up_pass1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/back_rectangle_layout"
+                    android:drawableLeft="@drawable/ic_lock_black_24dp"
+                    android:drawablePadding="4dp"
+                    android:drawableTint="@color/colorPrimary"
+                    android:hint="New Password"
+                    android:inputType="textPassword"
+                    android:maxLength="10"
+                    android:padding="8dp"
+                    android:singleLine="true"
+                    android:text="@={viewModel.userPassword}"
+                    android:textColor="@color/colorPrimary" />
+
+                <EditText
+                    android:id="@+id/sign_up_pass2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/back_rectangle_layout"
+                    android:drawableLeft="@drawable/ic_lock_black_24dp"
+                    android:drawablePadding="4dp"
+                    android:drawableTint="@color/colorPrimary"
+                    android:hint="Re-Enter Password"
+                    android:inputType="textPassword"
+                    android:maxLength="10"
+                    android:padding="8dp"
+                    android:singleLine="true"
+                    android:text="@={viewModel.userPassword}"
+                    android:textColor="@color/colorPrimary" />
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="32dp"
+                    android:layout_marginLeft="4dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginRight="4dp"
+                    android:background="@drawable/back_rectangle_layout"
+                    android:backgroundTint="@color/colorPrimary"
+                    android:onClick="@{()-> viewModel.onSignUpClick()}"
+                    android:text="SIGN UP"
+                    android:textColor="@color/colorWhite"
+                    bind:toastMessage="@{viewModel.toastMessage}" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/don_t_registered_apply_here"
+        android:textColor="@color/colorPrimary"
+        android:textSize="16dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginRight="30dp"
+        android:onClick="@{()-> viewModel.onApplyBtnClicked()}"
+        bind:layout_constraintBottom_toBottomOf="parent"
+        bind:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</layout>

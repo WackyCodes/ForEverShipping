@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">eAN_Shipping</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="don_t_registered_apply_here"><![CDATA[Don\'t Registered? Apply here
+    >]]></string>
+</resources>
