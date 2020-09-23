@@ -7,14 +7,14 @@
     android:layout_height="match_parent"
     tools:context=".launching.WelcomeActivity">
 
-
     <ImageView
         android:id="@+id/imageView3"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:scaleType="fitXY"
         android:layout_gravity="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@mipmap/logo" />
+        app:srcCompat="@drawable/spash_screen" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
