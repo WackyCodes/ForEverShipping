@@ -3,7 +3,7 @@ package ean.ecom.shipping.launching.fragment;
 
 import android.os.Bundle;
 
-import androidx.databinding.DataBindingUtil;
+import androidx.databinding.BindingAdapter;
 import androidx.fragment.app.Fragment;
 
 import android.text.Editable;
@@ -31,13 +31,15 @@ public class SignInFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate( R.layout.fragment_sign_in, container, false );
         // Data Binding...
-        FragmentSignInBinding activityMainBinding = DataBindingUtil.inflate( inflater, R.layout.fragment_sign_in, container,false );
+//        FragmentSignInBinding activityMainBinding = DataBindingUtil.bind( view ); // = DataBindingUtil.inflate( inflater, R.layout.fragment_sign_in, container,false );
+        FragmentSignInBinding activityMainBinding = FragmentSignInBinding.bind( view ); // = DataBindingUtil.inflate( inflater, R.layout.fragment_sign_in, container,false );
         activityMainBinding.setViewModel(new LogInViewModel());
         activityMainBinding.executePendingBindings();
 
         // Assign View...
-        View view = activityMainBinding.getRoot();
+//        View view = activityMainBinding.getRoot();
 
         emailEditText = view.findViewById( R.id.sign_in_email );
 
@@ -47,7 +49,8 @@ public class SignInFragment extends Fragment {
 
     }
 
-    private void setTextChanged( EditText editText ){
+
+    private void setTextChanged(EditText editText ){
         editText.addTextChangedListener( new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -66,6 +69,12 @@ public class SignInFragment extends Fragment {
 
             }
         } );
+    }
+
+    @BindingAdapter({"toastMessage"})
+    public static void setToastMessage(View view, String message) {
+        if (message != null)
+            Toast.makeText(view.getContext(), message, Toast.LENGTH_SHORT).show();
     }
 
 

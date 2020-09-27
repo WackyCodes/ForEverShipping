@@ -108,9 +108,8 @@
                     android:backgroundTint="@color/colorPrimary"
                     android:onClick="@{()-> viewModel.onLoginClicked()}"
                     android:text="LOGIN"
-                    android:textColor="@color/colorWhite"
-                    bind:toastMessage="@{viewModel.toastMessage}" />
-
+                    android:textColor="@color/colorWhite"/>
+<!--                bind:toastMessage="@{viewModel.toastMessage}" -->
 
             </LinearLayout>
             <!--            Sign In Layout  -->
@@ -169,8 +168,8 @@
                     android:backgroundTint="@color/colorPrimary"
                     android:onClick="@{()-> viewModel.onSignUpClick()}"
                     android:text="SIGN UP"
-                    android:textColor="@color/colorWhite"
-                    bind:toastMessage="@{viewModel.toastMessage}" />
+                    android:textColor="@color/colorWhite"/>
+                <!--                bind:toastMessage="@{viewModel.toastMessage}" -->
 
             </LinearLayout>
 

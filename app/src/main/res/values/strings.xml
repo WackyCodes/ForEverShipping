@@ -5,4 +5,12 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="don_t_registered_apply_here"><![CDATA[Don\'t Registered? Apply here
     >]]></string>
+
+    <string name="sample_email">wackycodes@gmail.com</string>
+
+    <string name="navigation_Drawer_Open">Open Navigation Bar</string>
+    <string name="navigation_Drawer_close">Close Navigation Bar</string>
+    <string name="maps_api_key">AIzaSyDrauNtyk-RTQ_wkgs_uC_Uig7Ph0bXO58</string>
+
+
 </resources>

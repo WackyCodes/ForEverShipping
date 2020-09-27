@@ -6,8 +6,6 @@ package ean.ecom.shipping.other.networkstate;
  */
 public interface NetworkConnection {
 
-
-
     // On Check Start...
     interface OnStateCheck{
 
@@ -15,6 +13,7 @@ public interface NetworkConnection {
             void onConnected();
         }
 
+        void requestToCheckAgain();
 
         int onStateChanged(OnStateChecker onStateChecker);
 

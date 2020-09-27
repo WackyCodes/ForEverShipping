@@ -72,7 +72,7 @@ public class CheckPermissionP implements CheckUserPermission.AppUsePermissionPre
             mainView.continueToNext( GO_TO_MAIN_ACTIVITY );
         }else{
             // show Alert Dialog...
-            mainView.showAlertDialog( "Permission denied!" );
+            mainView.showAlertDialog( "Admin Permission denied!" );
         }
     }
 

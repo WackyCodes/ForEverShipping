@@ -27,22 +27,19 @@ public class LogInViewModel extends BaseObservable {
         user = new SignInModel("","");
     }
 
-
+    @Bindable
     public String getToastMessage() {
         return toastMessage;
     }
 
-
-    private void setToastMessage(String toastMessage) {
-
+    public void setToastMessage(String toastMessage) {
         this.toastMessage = toastMessage;
-//        notifyPropertyChanged( ean.ecom.ean_shipping.BR.toastMessage);
+        notifyPropertyChanged( ean.ecom.shipping.BR.toastMessage);
     }
-
 
     public void setUserEmail(String email) {
         user.setEmail(email);
-//        notifyPropertyChanged( ean.ecom.ean_shipping.BR.userEmail );
+        notifyPropertyChanged( ean.ecom.shipping.BR.userEmail );
     }
 
     @Bindable
@@ -57,7 +54,7 @@ public class LogInViewModel extends BaseObservable {
 
     public void setUserPassword(String password) {
         user.setPassword(password);
-//        notifyPropertyChanged( ean.ecom.ean_shipping.BR.userPassword);
+        notifyPropertyChanged( ean.ecom.shipping.BR.userPassword);
     }
 
     public void onLoginClicked() {
