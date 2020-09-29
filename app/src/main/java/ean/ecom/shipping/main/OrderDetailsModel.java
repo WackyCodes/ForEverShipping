@@ -6,7 +6,7 @@ import com.google.firebase.firestore.GeoPoint;
  * Created by Shailendra (WackyCodes) on 26/09/2020 17:12
  * ( To Know more, Click : https://linktr.ee/wackycodes )
  */
-class OrderDetailsModel {
+public class OrderDetailsModel {
 
     private String orderID;
     private String deliveryID;
@@ -17,6 +17,8 @@ class OrderDetailsModel {
     private GeoPoint shippingGeoPoint;
     private GeoPoint myGeoPoint;
 
+    public OrderDetailsModel() {
+    }
 
     public OrderDetailsModel(String orderID, String deliveryID, String shopAddress, String shippingAddress) {
         this.orderID = orderID;

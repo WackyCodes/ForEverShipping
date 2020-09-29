@@ -25,6 +25,12 @@ public class StaticValues {
     public static final int ERROR_DIALOG_REQUEST = 103;
     public static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
 
+    public static final String mapServicePackage = "ean.ecom.shipping.service.LocationService";
+
+    // Delivery Boy Directory !
+    public static final String dMainCollection  = "";
+
+
 
 
 

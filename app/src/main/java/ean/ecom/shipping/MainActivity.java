@@ -11,6 +11,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -36,10 +37,12 @@ import de.hdodenhof.circleimageview.CircleImageView;
 import ean.ecom.shipping.main.MainMapsFragment;
 import ean.ecom.shipping.main.ShippingOrderFragment;
 import ean.ecom.shipping.other.StaticValues;
+import ean.ecom.shipping.service.LocationService;
 
 import static ean.ecom.shipping.other.StaticValues.ERROR_DIALOG_REQUEST;
 import static ean.ecom.shipping.other.StaticValues.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static ean.ecom.shipping.other.StaticValues.PERMISSIONS_REQUEST_ENABLE_GPS;
+import static ean.ecom.shipping.other.StaticValues.mapServicePackage;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private String TAG = "MainActivity";
@@ -227,6 +230,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (checkMapServices()){
             if (mLocationPermissionGranted){
                 getChatrooms();
+                startLocationService();
             }else{
                 getLocationPermission();
             }
@@ -346,5 +350,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
     // Checking all the Google Map Permission ------------------------------------------------------
 
+    // Starting Location Service....
+    private void startLocationService(){
+        if(!isLocationServiceRunning()){
+            Intent serviceIntent = new Intent(this, LocationService.class);
+//        this.startService(serviceIntent);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
+                MainActivity.this.startForegroundService(serviceIntent);
+            }else{
+                startService(serviceIntent);
+            }
+        }
+    }
+    // Checking is Location Service is Already Running or Not.
+    private boolean isLocationServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
+            if(mapServicePackage.equals(service.service.getClassName())) {
+                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
+                return true;
+            }
+        }
+        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
+        return false;
+    }
 
 }
