@@ -7,6 +7,7 @@ package ean.ecom.shipping.launching.fragment;
 
 public class SignInModel {
     private String email;
+    private String mobile;
     private String password;
     private String password1;
 
@@ -16,8 +17,15 @@ public class SignInModel {
         this.password = password;
     }
 
-    public SignInModel(String email, String password, String password1) {
+    public SignInModel(String email, String mobile, String password) {
         this.email = email;
+        this.mobile = mobile;
+        this.password = password;
+    }
+
+    public SignInModel(String email, String mobile, String password, String password1) {
+        this.email = email;
+        this.mobile = mobile;
         this.password = password;
         this.password1 = password1;
     }
@@ -29,6 +37,14 @@ public class SignInModel {
 
     public String getEmail() {
         return email;
+    }
+
+    public String getMobile() {
+        return mobile;
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
     }
 
     public void setPassword(String password) {

@@ -1,5 +1,7 @@
 package ean.ecom.shipping.other;
 
+import com.google.firebase.firestore.GeoPoint;
+
 /**
  * Created by Shailendra (WackyCodes) on 21/08/2020 03:52
  * ( To Know more, Click : https://linktr.ee/wackycodes )
@@ -9,6 +11,19 @@ public class StaticValues {
     public static String APP_VERSION = "em-1-01"; // ev-1-01
 
     public static final int STORAGE_PERMISSION = 1;
+    /**  Order Status
+     *          1. WAITING - ( For Accept )
+     *          2. ACCEPTED - ( Preparing )
+     *          3. PACKED - ( Waiting for Delivery ) READY_TO_DELIVERY
+     *          4. PROCESS  - When Any Delivery Boy Accept to Delivering...
+     *          5. PICKED - ( On Delivery ) OUT_FOR_DELIVERY...
+     *          6. SUCCESS - Success Full Delivered..!
+     *          7. CANCELLED -  When Order has been cancelled by user...
+     *          8. FAILED -  when PayMode Online and payment has been failed...
+     *          9. PENDING - when Payment is Pending...
+     *
+     */
+
     // Other Values....
     public static final int ID_UPDATE = 51;
     public static final int ID_DELETE = 52;
@@ -26,9 +41,14 @@ public class StaticValues {
     public static final String MAPVIEW_BUNDLE_KEY = "MapViewBundleKey";
 
     public static final String mapServicePackage = "ean.ecom.shipping.service.LocationService";
+    public static GeoPoint MY_GEO_POINTS;
 
     // Delivery Boy Directory !
     public static final String dMainCollection  = "";
+
+
+
+
 
 
 

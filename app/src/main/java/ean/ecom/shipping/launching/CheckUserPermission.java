@@ -16,7 +16,7 @@ public interface CheckUserPermission {
     void continueToNext(int stepNo);
 
 
-    // Interface to Check App Use
+    // Interface to Check App Use...
     interface CheckAppUsePermission{
         interface OnCheckFinisher{
             void onCheckedFinish(boolean permission);
@@ -43,6 +43,23 @@ public interface CheckUserPermission {
         void onAdminPermissionCheckStart();
 
     }
+
+    // Checking Whether User Is Registered or Not...!
+    interface CheckIsUserRegistered{
+
+        void onUserRegisteredChecked( boolean isRegistered, String email );
+
+        void onNotRegisteredUser();
+
+        void onSignInResponse(boolean isSuccess, String userMobile);
+
+        void onSignUpResponse(boolean isSuccess, String userMobile, String authID);
+
+        void showDialog();
+        void dismissDialog();
+
+    }
+
 
 
 }

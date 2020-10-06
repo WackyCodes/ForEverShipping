@@ -9,16 +9,24 @@ import android.os.Parcelable;
  */
 public class User implements Parcelable {
 
-    private String email;
+    private String user_email;
     private String user_id;
-    private String username;
-    private String avatar;
+    private String user_name;
+    private String user_image;
+    private String user_mobile;
 
-    public User(String email, String user_id, String username, String avatar) {
-        this.email = email;
+//    private String user_driving_licence;
+//    private String user_vehicle_number;
+//    private String user_address;
+//    private String user_;
+
+
+    public User(String user_email, String user_id, String user_name, String user_image, String user_mobile) {
+        this.user_email = user_email;
         this.user_id = user_id;
-        this.username = username;
-        this.avatar = avatar;
+        this.user_name = user_name;
+        this.user_image = user_image;
+        this.user_mobile = user_mobile;
     }
 
     public User() {
@@ -26,10 +34,10 @@ public class User implements Parcelable {
     }
 
     protected User(Parcel in) {
-        email = in.readString();
+        user_email = in.readString();
         user_id = in.readString();
-        username = in.readString();
-        avatar = in.readString();
+        user_name = in.readString();
+        user_image = in.readString();
     }
 
     public static final Creator <User> CREATOR = new Creator <User>() {
@@ -51,31 +59,31 @@ public class User implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString( email );
+        dest.writeString( user_email );
         dest.writeString( user_id );
-        dest.writeString( username );
-        dest.writeString( avatar );
+        dest.writeString( user_name );
+        dest.writeString( user_image );
     }
 
 
-    public String getAvatar() {
-        return avatar;
+    public String getUser_image() {
+        return user_image;
     }
 
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
+    public void setUser_image(String user_image) {
+        this.user_image = user_image;
     }
 
     public static Creator<User> getCREATOR() {
         return CREATOR;
     }
 
-    public String getEmail() {
-        return email;
+    public String getUser_email() {
+        return user_email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setUser_email(String user_email) {
+        this.user_email = user_email;
     }
 
     public String getUser_id() {
@@ -86,23 +94,25 @@ public class User implements Parcelable {
         this.user_id = user_id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getUser_name() {
+        return user_name;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setUser_name(String user_name) {
+        this.user_name = user_name;
+    }
+
+    public String getUser_mobile() {
+        return user_mobile;
+    }
+
+    public void setUser_mobile(String user_mobile) {
+        this.user_mobile = user_mobile;
     }
 
     @Override
     public String toString() {
-        return "User{" +
-                "email='" + email + '\'' +
-                ", user_id='" + user_id + '\'' +
-                ", username='" + username + '\'' +
-                ", avatar='" + avatar + '\'' +
-                '}';
+        return "User{" + "user_email='" + user_email + '\'' + ", user_id='" + user_id + '\'' + ", user_name='" + user_name + '\'' + ", user_image='" + user_image + '\'' + ", user_mobile='" + user_mobile + '\'' + '}';
     }
-
 
 }

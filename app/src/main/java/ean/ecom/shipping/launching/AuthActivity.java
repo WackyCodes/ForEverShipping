@@ -43,13 +43,13 @@ public class AuthActivity extends AppCompatActivity {
 
     public void broadcastIntent() {
 //        registerReceiver(broadcastReceiver, new IntentFilter( ConnectivityManager.CONNECTIVITY_ACTION));
-
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(broadcastReceiver);
+//        unregisterReceiver(broadcastReceiver);
     }
+
 
 }

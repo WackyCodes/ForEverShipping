@@ -1,11 +1,18 @@
 package ean.ecom.shipping.launching.fragment;
 
+import android.content.Context;
 import android.text.TextUtils;
 import android.util.Patterns;
 
 import androidx.databinding.BaseObservable;
 ;
 import androidx.databinding.Bindable;
+
+import java.net.ContentHandler;
+
+import ean.ecom.shipping.BR;
+import ean.ecom.shipping.launching.CheckUserPermission;
+import ean.ecom.shipping.launching.UserPermissionM;
 
 
 /**
@@ -15,18 +22,88 @@ import androidx.databinding.Bindable;
 
 public class LogInViewModel extends BaseObservable {
     private SignInModel user;
-
+    private Context context;
     private String successMessage = "Login was successful";
     private String errorMessage = "Email or Password not valid";
 
     @Bindable
     private String toastMessage = null;
 
+    private CheckUserPermission.CheckIsUserRegistered onAuthActionListener;
+    private UserPermissionM authActionClass;
+
     //  Constructor....
-    public LogInViewModel() {
+    public LogInViewModel(Context context, CheckUserPermission.CheckIsUserRegistered onAuthActionListener ) {
         user = new SignInModel("","");
+        authActionClass = new UserPermissionM();
+        this.context = context;
+        this.onAuthActionListener = onAuthActionListener;
     }
 
+    // ----------- Action Button Click -------------------------------------------------------------
+
+    public void onLoginClicked() {
+        if (isValidSignInData()){
+//            setToastMessage(successMessage);
+            if (authActionClass!=null){
+                onAuthActionListener.showDialog();
+                authActionClass.onSignInListener( onAuthActionListener, getUserMobile(), getUserEmail(), getUserPassword() );
+            }
+        }
+        else {
+            setToastMessage(errorMessage);
+        }
+    }
+
+    // on Forget Password Clicked...!
+    public void onForgetPasswordClick(){
+
+    }
+
+    // On Sign Up Clicked..!
+    public void onSignUpClick(){
+        if (isValidUserSignUpData()){
+//            setToastMessage(successMessage);
+            if (authActionClass!=null){
+                onAuthActionListener.showDialog();
+                authActionClass.onSignUpListener( onAuthActionListener, getUserMobile() , getUserEmail(), getUserPassword() );
+            }
+        }
+        else {
+            setToastMessage(errorMessage);
+        }
+    }
+
+
+    // on Apply Button Clicked..!
+    public void onApplyBtnClicked(){
+
+
+    }
+
+    // ----------- Action Button Click -------------------------------------------------------------
+
+    // Validation...
+
+    public boolean isValidSignInData() {
+        return isValidEmail() && getUserPassword() != null;
+    }
+
+    public  boolean isValidUserSignUpData(){
+        return isValidEmail() && isMatchedPassword();
+    }
+
+    // Checking Validation.....
+    private boolean isValidEmail(){
+        return !TextUtils.isEmpty(getUserEmail()) && Patterns.EMAIL_ADDRESS.matcher(getUserEmail()).matches();
+    }
+
+    private boolean isMatchedPassword(){
+        return !TextUtils.isEmpty(getUserPassword()) && !TextUtils.isEmpty(getUserPassword1()) && getUserPassword1().equals( getUserPassword() );
+    }
+
+
+    // ----------- Binding Data --------------------------------------------------------------------
     @Bindable
     public String getToastMessage() {
         return toastMessage;
@@ -37,14 +114,24 @@ public class LogInViewModel extends BaseObservable {
         notifyPropertyChanged( ean.ecom.shipping.BR.toastMessage);
     }
 
+    @Bindable
+    public String getUserEmail() {
+        return user.getEmail();
+    }
+
     public void setUserEmail(String email) {
         user.setEmail(email);
         notifyPropertyChanged( ean.ecom.shipping.BR.userEmail );
     }
 
     @Bindable
-    public String getUserEmail() {
-        return user.getEmail();
+    public String getUserMobile() {
+        return user.getMobile();
+    }
+
+    public void setUserMobile(String mobile) {
+        user.setMobile(mobile);
+        notifyPropertyChanged( BR.userMobile );
     }
 
     @Bindable
@@ -54,35 +141,29 @@ public class LogInViewModel extends BaseObservable {
 
     public void setUserPassword(String password) {
         user.setPassword(password);
-        notifyPropertyChanged( ean.ecom.shipping.BR.userPassword);
+        notifyPropertyChanged( ean.ecom.shipping.BR.userPassword );
+    }
+    @Bindable
+    public String getUserPassword1() {
+        return user.getPassword();
     }
 
-    public void onLoginClicked() {
-        if (isInputDataValid())
-            setToastMessage(successMessage);
-        else
-            setToastMessage(errorMessage);
+    public void setUserPassword1(String password) {
+        user.setPassword(password);
+        notifyPropertyChanged( ean.ecom.shipping.BR.userPassword1 );
     }
 
-    public boolean isInputDataValid() {
-        return !TextUtils.isEmpty(getUserEmail()) && Patterns.EMAIL_ADDRESS.matcher(getUserEmail()).matches() && getUserPassword().length() > 5;
+    @Bindable
+    public String getUserPassword2() {
+        return user.getPassword1();
     }
 
-    // on Forget Password Clicked...!
-    public void onForgetPasswordClick(){
-
+    public void setUserPassword2(String password) {
+        user.setPassword1(password);
+        notifyPropertyChanged( ean.ecom.shipping.BR.userPassword1 );
     }
 
-    // On Sign Up Clicked..!
-    public void onSignUpClick(){
-
-    }
-
-
-    // on Apply Button Clicked..!
-    public void onApplyBtnClicked(){
-
-    }
+    // ----------- Binding Data --------------------------------------------------------------------
 
 
 }

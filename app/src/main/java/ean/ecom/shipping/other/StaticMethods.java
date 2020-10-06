@@ -6,11 +6,17 @@ import android.net.Uri;
 import android.os.Environment;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.google.firebase.Timestamp;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -53,6 +59,29 @@ public class StaticMethods {
             showToast( context, e.getMessage() );
         }finally{
             return msg;
+        }
+    }
+
+
+    public static void writeFileInLocal(@NonNull Context context, String fileName, String textMsg){
+        try {
+//            FileOutputStream fileOS = openFileOutput( fileName, MODE_PRIVATE );
+//            OutputStreamWriter outputStreamWriter = new OutputStreamWriter( fileOS );
+//            outputStreamWriter.write( textMsg );
+//            outputStreamWriter.close();
+            File folder1 = new File(context.getExternalFilesDir( Environment.getExternalStorageDirectory().getAbsolutePath() ), fileName);
+            folder1.mkdirs();
+            File pdfFile = new File(folder1, fileName + ".txt");
+//            InputStream inputStream = urlConnection.getInputStream();
+            FileOutputStream fileOutputStream = new FileOutputStream( pdfFile );
+            OutputStreamWriter outputStreamWriter = new OutputStreamWriter( fileOutputStream );
+            outputStreamWriter.write( textMsg );
+            outputStreamWriter.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

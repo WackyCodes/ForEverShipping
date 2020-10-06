@@ -13,11 +13,13 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
+import androidx.databinding.DataBindingUtil;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -26,18 +28,26 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 
 import ean.ecom.shipping.R;
+import ean.ecom.shipping.database.DBQuery;
 import ean.ecom.shipping.other.StaticMethods;
+import ean.ecom.shipping.other.StaticValues;
 import ean.ecom.shipping.profile.User;
 import ean.ecom.shipping.profile.UserClient;
 import ean.ecom.shipping.profile.UserLocation;
+
+import static ean.ecom.shipping.database.DBQuery.currentUser;
+import static ean.ecom.shipping.database.DBQuery.firebaseFirestore;
 
 /**
  * Created by Shailendra (WackyCodes) on 29/09/2020 11:47
@@ -52,7 +62,7 @@ public class LocationService extends Service {
 
     private FusedLocationProviderClient mFusedLocationClient;
     private final static long UPDATE_INTERVAL = 4 * 1000;  /* 4 secs */
-    private final static long FASTEST_INTERVAL = 10000; /* 10 sec */
+    private final static long FASTEST_INTERVAL = 5000; /* 5 sec */
 
     @Nullable
     @Override
@@ -102,6 +112,7 @@ public class LocationService extends Service {
         // new Google API SDK v11 uses getFusedLocationProviderClient(this)
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText( this, "Location Permission Denied!", Toast.LENGTH_SHORT ).show();
             Log.d(TAG, "getLocation: stopping the location service.");
             stopSelf();
             return;
@@ -116,35 +127,41 @@ public class LocationService extends Service {
                         Location location = locationResult.getLastLocation();
 
                         if (location != null) {
-                             User user = ((UserClient)(getApplicationContext())).getUser();
+//                             User user = ((UserClient)(getApplicationContext())).getUser();
                              GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-                             UserLocation userLocation = new UserLocation(user, geoPoint, Calendar.getInstance().getTime() );
-                             saveUserLocation(userLocation);
+//                             UserLocation userLocation = new UserLocation(user, geoPoint, Calendar.getInstance().getTime() );
+                            StaticValues.MY_GEO_POINTS = geoPoint;
+                            Map<String, Object> updateMap = new HashMap <>();
+                            updateMap.put( "my_geo_point", geoPoint );
+                            updateMap.put( "last_location_time", Timestamp.now() );
+//                            Timestamp timestamp = Timestamp.now();
+                            if ( currentUser != null ){
+                                saveUserLocation( updateMap );
+                            }
                         }
                     }
                 },
                 Looper.myLooper()); // Looper.myLooper tells this to repeat forever until thread is destroyed
     }
 
-
-      private void saveUserLocation(final UserLocation userLocation){
+    private void saveUserLocation(final Map<String, Object> updateMap ){
 
          try{
-              DocumentReference locationRef = FirebaseFirestore.getInstance()
-                      .collection( " " )
-                      .document( FirebaseAuth.getInstance().getUid());
+              DocumentReference locationRef = firebaseFirestore.collection( "DELIVERY_BOY" )
+                      .document( currentUser.getUid() );
+              locationRef
+                      .update( updateMap )
+                      .addOnCompleteListener( new OnCompleteListener <Void>() {
+                          @Override
+                          public void onComplete(@NonNull Task <Void> task) {
+                              if(task.isSuccessful()){
+                                  // Successfully Update
+                                  Log.d(TAG, "onComplete: \ninserted user location into database." +
+                                          "\n Lat Long (Geo Point) : " + updateMap.get( "my_geo_point" ).toString());
+                              }
+                          }
+                      } );
 
-              locationRef.set(userLocation).addOnCompleteListener(new OnCompleteListener <Void>() {
-                  @Override
-                  public void onComplete(@NonNull Task <Void> task) {
-                      if(task.isSuccessful()){
-                          // Successfully Update
-                          Log.d(TAG, "onComplete: \ninserted user location into database." +
-                                  "\n latitude: " + userLocation.getGeo_point().getLatitude() +
-                                  "\n longitude: " + userLocation.getGeo_point().getLongitude());
-                      }
-                  }
-              });
          }catch (NullPointerException e){
               Log.e(TAG, "saveUserLocation: User instance is null, stopping location service.");
               Log.e(TAG, "saveUserLocation: NullPointerException: "  + e.getMessage() );

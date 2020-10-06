@@ -1,10 +1,10 @@
-package ean.ecom.shipping.main;
+package ean.ecom.shipping.main.order;
 
 /**
  * Created by Shailendra (WackyCodes) on 27/09/2020 11:05
  * ( To Know more, Click : https://linktr.ee/wackycodes )
  */
-class OrderListModel {
+public class OrderListModel {
 
     private String orderID;
 

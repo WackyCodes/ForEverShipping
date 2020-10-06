@@ -115,11 +115,11 @@ public class WelcomeActivity extends AppCompatActivity implements CheckUserPermi
         if (currentUser != null){
             // Getting Data from Local Directory. If user has login before, then we can get the data that we had created at signUp/login time
             String userMobile = StaticMethods.readFileFromLocal(this, "mobile" );
-            String email = StaticMethods.readFileFromLocal(this, "shop" );
+//            String email = StaticMethods.readFileFromLocal(this, "shop" );
 
-            if (userMobile != null && email != null){
+            if (userMobile != null){
                 // Now We have to check whether User has permission to use this app or not
-                adminPermissionPresenter = new CheckPermissionP( this, new UserPermissionM(), userMobile , email );
+                adminPermissionPresenter = new CheckPermissionP( this, new UserPermissionM(), userMobile, "");
                 adminPermissionPresenter.onAdminPermissionCheckStart();
             }else{
                 // In Case User data not found in local disk!

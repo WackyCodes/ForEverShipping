@@ -1,11 +1,24 @@
 package ean.ecom.shipping.launching;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import ean.ecom.shipping.database.DBQuery;
+import ean.ecom.shipping.other.DialogsClass;
+
+import static ean.ecom.shipping.database.DBQuery.currentUser;
+import static ean.ecom.shipping.database.DBQuery.firebaseAuth;
 import static ean.ecom.shipping.database.DBQuery.firebaseFirestore;
 
 /**
@@ -36,11 +49,126 @@ public class UserPermissionM implements CheckUserPermission.CheckAppUsePermissio
     }
 
     @Override
-    public void checkAdminPermission(OnAdminCheckFinisher onCheckFinisher, String mobile, String email) {
-        // If Permission Granted..!!
-        onCheckFinisher.onAdminPermissionCheckFinish( true );
-        //..
+    public void checkAdminPermission(final OnAdminCheckFinisher onCheckFinisher, String mobile, String email) {
+
+        firebaseFirestore.collection( "DELIVERY_BOYS" )
+                .document( mobile )
+                .get().addOnCompleteListener( new OnCompleteListener <DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task <DocumentSnapshot> task) {
+                if (task.isSuccessful()){
+                    Boolean is_allowed = task.getResult().getBoolean( "is_allowed" );
+                    if (is_allowed) {
+//                        String email = task.getResult().get( "email" ).toString();
+//                        String mobile = task.getResult().get( "mobile" ).toString();
+//                        String name = task.getResult().get( "name" ).toString();
+//                        String admin_photo = task.getResult().get( "admin_photo" ).toString();
+//                        String address = task.getResult().get( "address" ).toString();
+
+                        onCheckFinisher.onAdminPermissionCheckFinish( true );
+                    }else{
+                        onCheckFinisher.onAdminPermissionCheckFinish( false );
+                    }
+
+                }else{
+                    onCheckFinisher.onAdminPermissionCheckFinish( false );
+                }
+            }
+        } );
+
     }
+
+    //// Checking User Auth Steps...
+
+    public void onSignInListener(final CheckUserPermission.CheckIsUserRegistered checkIsUserRegistered, final String userMobile,  String email, String password){
+
+        firebaseAuth.signInWithEmailAndPassword( email, password )
+                .addOnCompleteListener( new OnCompleteListener <AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task <AuthResult> task) {
+                        if (task.isSuccessful()){
+                            // Assign Current User...
+                            checkIsUserRegistered.onSignInResponse( true, userMobile );
+                            DBQuery.currentUser = firebaseAuth.getCurrentUser();
+                            // Success...
+                            // Write in Local file
+//                            writeDataInLocal( context, signInShopID.getText().toString().trim(), signInMobile.getText().toString() );
+
+                        }else{
+                            checkIsUserRegistered.onSignInResponse( false, userMobile );
+                        }
+                    }
+                } );
+
+    }
+
+    public void onSignUpListener(final CheckUserPermission.CheckIsUserRegistered checkIsUserRegistered, final String userMobile, final String email, String password){
+
+        firebaseAuth.createUserWithEmailAndPassword( email, password )
+                .addOnCompleteListener( new OnCompleteListener <AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task <AuthResult> task) {
+                        if (task.isSuccessful()){
+                            // Assign Current User...
+                            DBQuery.currentUser = firebaseAuth.getCurrentUser();
+                            onSignUpUserUpdateId( checkIsUserRegistered, userMobile, firebaseAuth.getCurrentUser().getUid() );
+                            // Success...
+//                            Map <String, Object> updateMap = new HashMap <>();
+//                            updateMap.put( "auth_id", firebaseAuth.getCurrentUser().getUid() );
+
+                            // Write in Local file...
+//                            writeDataInLocal( context, signInShopID.getText().toString().trim(), signInMobile.getText().toString() );
+                        }else{
+                            checkIsUserRegistered.onSignUpResponse( false, userMobile,null );
+                        }
+                    }
+                } );
+
+    }
+
+    private void onSignUpUserUpdateId(final CheckUserPermission.CheckIsUserRegistered checkIsUserRegistered, final String userMobile, final String authID ){
+        firebaseFirestore.collection( "DELIVERY_BOYS" )
+                .document( userMobile )
+                .update( "auth_id", authID )
+                .addOnCompleteListener( new OnCompleteListener <Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task <Void> task) {
+                        checkIsUserRegistered.onSignUpResponse( true, userMobile, authID );
+                    }
+                } );
+    }
+
+    // Checking User Register
+    public void onUserRegisterCheckListener(final CheckUserPermission.CheckIsUserRegistered checkIsUserRegistered, String mobile){
+//        checkIsUserRegistered.onNotRegisteredUser();
+//        checkIsUserRegistered.onUserRegisteredChecked( false, "email" );
+
+        firebaseFirestore.collection( "DELIVERY_BOYS" )
+                .document( mobile )
+                .addSnapshotListener( new EventListener <DocumentSnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
+                        if (documentSnapshot.exists()){
+//                            String authID = documentSnapshot.get( "auth_id" ).toString();
+                            if (documentSnapshot.get( "auth_id" ) != null ){
+                                // Show Pass...
+                                String adminEmail = documentSnapshot.get( "email" ).toString();
+                                checkIsUserRegistered.onUserRegisteredChecked( true, adminEmail );
+
+                            }else{
+                                // Show Create Pass..
+                                String adminEmail = documentSnapshot.get( "email" ).toString();
+                                checkIsUserRegistered.onUserRegisteredChecked( false, adminEmail );
+                            }
+                        }
+                        else{
+                            checkIsUserRegistered.onNotRegisteredUser();
+                        }
+                    }
+                } );
+
+    }
+
 
 
 

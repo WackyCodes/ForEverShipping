@@ -35,8 +35,6 @@ import com.google.android.material.navigation.NavigationView;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import ean.ecom.shipping.main.MainMapsFragment;
-import ean.ecom.shipping.main.ShippingOrderFragment;
-import ean.ecom.shipping.other.StaticValues;
 import ean.ecom.shipping.service.LocationService;
 
 import static ean.ecom.shipping.other.StaticValues.ERROR_DIALOG_REQUEST;
@@ -75,8 +73,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar( toolbar );
         try {
             getSupportActionBar().setDisplayShowTitleEnabled( true );
-            getSupportActionBar().setTitle( "ADMIN_DATA_MODEL.getShopName() " );
-            getSupportActionBar().setSubtitle( "S" );
+            getSupportActionBar().setTitle( "4Ever Mall" );
+            getSupportActionBar().setSubtitle( "" );
         }catch (NullPointerException ignored){ }
 
         // setNavigationItemSelectedListener()...
@@ -99,11 +97,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //        drawerName.setText( ADMIN_DATA_MODEL.getAdminName() ); // Admin Name...
 //        drawerEmail.setText( ADMIN_DATA_MODEL.getAdminEmail() ); // Admin Email...
 
-
-        // Set Map Fragment...
-        setFragment( mainFrameLayout, new MainMapsFragment() );
-        // setShipping Order Fragment...
-        setFragment( deliveryProductListFrameLayout, new ShippingOrderFragment() );
 
     }
 
@@ -229,8 +222,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onResume();
         if (checkMapServices()){
             if (mLocationPermissionGranted){
-                getChatrooms();
                 startLocationService();
+                setMainMapsFragment();
             }else{
                 getLocationPermission();
             }
@@ -240,8 +233,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     //----------------------------
     private boolean mLocationPermissionGranted = false;
 
-    private void getChatrooms(){
-        // TODO : next..
+    private void setMainMapsFragment(){
+        // Set Map Fragment...
+        setFragment( mainFrameLayout, new MainMapsFragment() );
+//        Toast.makeText( this, "Fragment Set!", Toast.LENGTH_SHORT ).show();
+        Log.d( "SetMapFragment : " ,"Main Fragment is Set !");
     }
 
     // Checking all the Google Map Permission ------------------------------------------------------
@@ -288,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mLocationPermissionGranted = true;
-            getChatrooms();
+            setMainMapsFragment();
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
@@ -321,6 +317,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String permissions[],
                                            @NonNull int[] grantResults) {
+        Log.d(TAG, "OnRequestPermissionResult: called. RequestCode: "+ requestCode);
         mLocationPermissionGranted = false;
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
@@ -328,18 +325,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     mLocationPermissionGranted = true;
+                    setMainMapsFragment();
                 }
             }
         }
     }
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    protected void onActivityResult(int requestCode, int resultCode, Intent grantResults) {
+        super.onActivityResult(requestCode, resultCode, grantResults);
         Log.d(TAG, "onActivityResult: called.");
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ENABLE_GPS: {
                 if(mLocationPermissionGranted){
-                    getChatrooms();
+                    // On Resume ...
+                    startLocationService();
+                    setMainMapsFragment();
                 }
                 else{
                     getLocationPermission();

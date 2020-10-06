@@ -63,6 +63,7 @@ public class CheckPermissionP implements CheckUserPermission.AppUsePermissionPre
 
     @Override
     public void onAdminPermissionCheckStart() {
+        checkAdminPermission.checkAdminPermission( this, mobile, email );
     }
 
     @Override
