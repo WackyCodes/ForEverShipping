@@ -97,7 +97,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //        drawerName.setText( ADMIN_DATA_MODEL.getAdminName() ); // Admin Name...
 //        drawerEmail.setText( ADMIN_DATA_MODEL.getAdminEmail() ); // Admin Email...
 
-
     }
 
     // --------  Menu And Navigation....
@@ -353,7 +352,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // Starting Location Service....
     private void startLocationService(){
         if(!isLocationServiceRunning()){
-            Intent serviceIntent = new Intent(this, LocationService.class);
+            Intent serviceIntent = new Intent(MainActivity.this, LocationService.class);
 //        this.startService(serviceIntent);
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
                 MainActivity.this.startForegroundService(serviceIntent);
@@ -372,6 +371,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
         Log.d(TAG, "isLocationServiceRunning: location service is not running.");
+        Toast.makeText( this, "service not running..", Toast.LENGTH_SHORT ).show();
         return false;
     }
 

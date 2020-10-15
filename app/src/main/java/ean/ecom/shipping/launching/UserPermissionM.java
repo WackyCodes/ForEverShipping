@@ -20,6 +20,8 @@ import ean.ecom.shipping.other.DialogsClass;
 import static ean.ecom.shipping.database.DBQuery.currentUser;
 import static ean.ecom.shipping.database.DBQuery.firebaseAuth;
 import static ean.ecom.shipping.database.DBQuery.firebaseFirestore;
+import static ean.ecom.shipping.other.StaticMethods.writeFileInLocal;
+import static ean.ecom.shipping.other.StaticValues.USER_ACCOUNT;
 
 /**
  * Created by Shailendra (WackyCodes) on 21/08/2020 04:24
@@ -48,6 +50,7 @@ public class UserPermissionM implements CheckUserPermission.CheckAppUsePermissio
         } );
     }
 
+    // We are getting User Information after Checking Permission...
     @Override
     public void checkAdminPermission(final OnAdminCheckFinisher onCheckFinisher, String mobile, String email) {
 
@@ -59,13 +62,21 @@ public class UserPermissionM implements CheckUserPermission.CheckAppUsePermissio
                 if (task.isSuccessful()){
                     Boolean is_allowed = task.getResult().getBoolean( "is_allowed" );
                     if (is_allowed) {
-//                        String email = task.getResult().get( "email" ).toString();
-//                        String mobile = task.getResult().get( "mobile" ).toString();
-//                        String name = task.getResult().get( "name" ).toString();
-//                        String admin_photo = task.getResult().get( "admin_photo" ).toString();
-//                        String address = task.getResult().get( "address" ).toString();
+                        try{
+                            USER_ACCOUNT.setUser_email( task.getResult().get( "email" ).toString() );
+                            USER_ACCOUNT.setUser_mobile( task.getResult().get( "mobile" ).toString() );
+                            USER_ACCOUNT.setUser_id( task.getResult().get( "auth_id" ).toString() );
+                            USER_ACCOUNT.setUser_city_code( task.getResult().get( "city_code" ).toString() );
+                            USER_ACCOUNT.setUser_name( task.getResult().get( "name" ).toString() );
+                            USER_ACCOUNT.setUser_image( task.getResult().get( "admin_photo" ).toString() );
+                            USER_ACCOUNT.setUser_address( task.getResult().get( "address" ).toString() );
 
-                        onCheckFinisher.onAdminPermissionCheckFinish( true );
+                        }catch (NullPointerException e){
+
+                        }finally {
+                            onCheckFinisher.onAdminPermissionCheckFinish( true );
+                        }
+
                     }else{
                         onCheckFinisher.onAdminPermissionCheckFinish( false );
                     }
@@ -79,7 +90,6 @@ public class UserPermissionM implements CheckUserPermission.CheckAppUsePermissio
     }
 
     //// Checking User Auth Steps...
-
     public void onSignInListener(final CheckUserPermission.CheckIsUserRegistered checkIsUserRegistered, final String userMobile,  String email, String password){
 
         firebaseAuth.signInWithEmailAndPassword( email, password )

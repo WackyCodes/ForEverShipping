@@ -1,6 +1,5 @@
 package ean.ecom.shipping.main;
 
-import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.firestore.GeoPoint;
 
 /**

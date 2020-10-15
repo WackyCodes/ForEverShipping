@@ -41,20 +41,28 @@ import com.google.maps.internal.PolylineEncoding;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
 
+
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import ean.ecom.shipping.R;
 import ean.ecom.shipping.database.DBQuery;
-import ean.ecom.shipping.main.order.CurrentOrderListModel;
+import ean.ecom.shipping.main.map.GetMapData;
+import ean.ecom.shipping.main.map.TaskLoadedCallback;
 import ean.ecom.shipping.main.order.CurrentOrderUpdateListener;
+import ean.ecom.shipping.other.StaticMethods;
 
 import static ean.ecom.shipping.database.DBQuery.currentOrderListModelList;
 import static ean.ecom.shipping.other.StaticValues.MAPVIEW_BUNDLE_KEY;
+import static ean.ecom.shipping.other.StaticValues.USER_ACCOUNT;
 
 public class MainMapsFragment extends Fragment implements OnMapReadyCallback, MapAction, CurrentOrderUpdateListener
         , GoogleMap.OnInfoWindowClickListener
-        , GoogleMap.OnPolylineClickListener {
+        , GoogleMap.OnPolylineClickListener
+        , TaskLoadedCallback {
 
     public MainMapsFragment() {
     }
@@ -62,8 +70,7 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
     private MapView mMapView;
     private GoogleMap myGoogleMap;
     private GoogleApiClient wGoogleApiClient;
-    Location wLocation;
-    LocationRequest wLocationRequest;
+    private Polyline currentPolyline;
 
     private GeoApiContext mGeoApiContext = null;
     private ArrayList<PolylineData> polylineDataList = new ArrayList <>();
@@ -109,8 +116,13 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
         // Notify..
         shippingOrderAdaptor.notifyDataSetChanged();
         if (currentOrderListModelList.size() == 0){
-            DBQuery.getNewOrderNotification( "BHOPAL" ); // TODO: UPDATE
+            DBQuery.getNewOrderNotification( USER_ACCOUNT.getUser_city_code() );
         }
+
+        // hide my location Default Button ...
+        View locationButton = ((View) mMapView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
+        locationButton.setVisibility( View.INVISIBLE );
+
 
         return view;
     }
@@ -124,13 +136,20 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
         mMapView.getMapAsync( this );
 
         // Initiate GeoApiContext...
-        if(mGeoApiContext != null){
-            mGeoApiContext = new GeoApiContext.Builder().apiKey( getString( R.string.maps_api_key ) )
+        if(mGeoApiContext == null){
+            mGeoApiContext = new GeoApiContext.Builder().apiKey( getString( R.string.google_maps_key ) )
                     .build();
         }
-        // hide my location Default Button ...
-        View locationButton = ((View) mMapView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
-        locationButton.setVisibility( View.INVISIBLE );
+    }
+
+    private GeoApiContext getmGeoApiContext(){
+        if(mGeoApiContext == null){
+            mGeoApiContext = new GeoApiContext.Builder().apiKey( getString( R.string.google_maps_key ) )
+                    .build();
+            return mGeoApiContext;
+        }else{
+            return mGeoApiContext;
+        }
     }
 
     private void onButtonClick(){
@@ -239,25 +258,30 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
 
     @Override
     public void drawPathLine(GeoPoint fromPoint, GeoPoint toPoint) {
-        // Draw Line...
-        Toast.makeText( getContext(), "DrawPath : Not Found", Toast.LENGTH_SHORT ).show();
-
         // Set Custom Marker......
-        LatLng fromLocation = new LatLng(
-                fromPoint.getLatitude(), fromPoint.getLongitude()
-        );
-        Marker fromMarker = myGoogleMap.addMarker( new MarkerOptions()
-                .position( fromLocation ));
+        LatLng fromLocation = new LatLng( fromPoint.getLatitude(), fromPoint.getLongitude() );
+        LatLng endLocation = new LatLng( toPoint.getLatitude(), toPoint.getLongitude() );
 
-        LatLng endLocation = new LatLng(
-                toPoint.getLatitude(), toPoint.getLongitude()
-        );
-        Marker endMarker = myGoogleMap.addMarker( new MarkerOptions()
-                .position( endLocation ));
+        MarkerOptions fromMarkerOp = new MarkerOptions().position( fromLocation );
+        MarkerOptions endMarkerOp = new MarkerOptions().position( endLocation );
+
+        com.google.android.gms.maps.model.Marker fromMarker = myGoogleMap.addMarker( fromMarkerOp );
+        com.google.android.gms.maps.model.Marker endMarker = myGoogleMap.addMarker( endMarkerOp );
 
         // Calculate Directions....
-        calculateDirections(fromMarker, endMarker );
+//        calculateDirections(fromMarker, endMarker );
+/*
+        String mapUrl = getMapUrl( fromMarkerOp.getPosition(), endMarkerOp.getPosition(), "driving" );
+        GetMapData getMapData = new GetMapData( this );
+        getMapData.execute( mapUrl, "driving" );
+ */
+    }
 
+    @Override
+    public void onTaskDone(Object... values) {
+        if (currentPolyline != null)
+            currentPolyline.remove();
+        currentPolyline = myGoogleMap.addPolyline((PolylineOptions) values[0]);
     }
 
     // Remove Markers...
@@ -308,10 +332,9 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
         }
     }
 
-
     // Google Map Info Window Click...
     @Override
-    public void onInfoWindowClick(Marker marker) {
+    public void onInfoWindowClick(com.google.android.gms.maps.model.Marker marker) {
         // If User Click on Their Location Tap
         if(marker.getSnippet().equals("Your Location")){
             resetClickMarker();
@@ -328,42 +351,38 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
 
     // Calculate Directions...
     private void calculateDirections(Marker fromLocation, Marker toLocation){
+
+
         Log.d("MainMapsFragment", "calculateDirections: calculating directions.");
         com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
                 fromLocation.getPosition().latitude,
                 fromLocation.getPosition().longitude
         );
-        DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
+        DirectionsApiRequest directions = new DirectionsApiRequest( getmGeoApiContext() );
 
         directions.alternatives(true);
-        directions.origin(
-                new com.google.maps.model.LatLng(
+        directions.origin( new com.google.maps.model.LatLng(
                         toLocation.getPosition().latitude,
-                        toLocation.getPosition().longitude
-                )
-        );
+                        toLocation.getPosition().longitude ) );
+
         Log.d("MainMapsFragment", "calculateDirections: destination: " + destination.toString());
-        directions.destination(destination).setCallback(new PendingResult.Callback<DirectionsResult>() {
-            @Override
-            public void onResult(DirectionsResult result) {
-                // Adding Polyline to Result...
-                addPolyLinesToMap( result );
-                try{
-                    Log.d("MainMapsFragment", "calculateDirections: routes: " + result.routes[0].toString());
-                    Log.d("MainMapsFragment", "calculateDirections: duration: " + result.routes[0].legs[0].duration);
-                    Log.d("MainMapsFragment", "calculateDirections: distance: " + result.routes[0].legs[0].distance);
-                    Log.d("MainMapsFragment", "calculateDirections: geocodedWayPoints: " + result.geocodedWaypoints[0].toString());
-                }catch (Exception e){
 
-                }
-            }
+        directions.destination(destination)
+                .setCallback(
+                new PendingResult.Callback<DirectionsResult>() {
+                    @Override
+                    public void onResult(DirectionsResult result) {
+                        // Adding Polyline to Result...
+                        addPolyLinesToMap( result );
+//                        showToast("ON RESULT : " +result.toString());
+                    }
 
-            @Override
-            public void onFailure(Throwable e) {
-                Log.e("MainMapsFragment", "calculateDirections: Failed to get directions: " + e.getMessage() );
-
-            }
-        });
+                    @Override
+                    public void onFailure(Throwable e) {
+//                        showToast("ON FAILED: " + e.getMessage() + " : "+ e.getCause());
+                        Log.e( "GET_DIRECTION","Exception: "+ e.getMessage() + " : "+ e.getLocalizedMessage() );
+                    }
+                });
     }
 
     private void addPolyLinesToMap(final DirectionsResult result) {
@@ -429,7 +448,7 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
                     polylineData.getLeg().endLocation.lat,
                     polylineData.getLeg().endLocation.lng
                 );
-                Marker marker = myGoogleMap.addMarker( new MarkerOptions()
+                com.google.android.gms.maps.model.Marker marker = myGoogleMap.addMarker( new MarkerOptions()
                     .position( endLocation )
                     .title( "Distance :" + polylineData.getLeg().distance )
                     .snippet( "Duration : "+ polylineData.getLeg().duration ));
@@ -502,5 +521,24 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
 
 // ========= Google Maps and Methods...====================================================
 
+    private void showToast(String s){
+        Toast.makeText( getContext(), s, Toast.LENGTH_SHORT ).show();
+    }
+
+    private String getMapUrl(LatLng from, LatLng end, String mode){
+        // Origin of route
+        String str_origin = "origin=" + from.latitude + "," + from.longitude;
+        // Destination of route
+        String str_dest = "destination=" + end.latitude + "," + end.longitude;
+        // Mode
+        String modes = "mode=" + mode;
+        // Building the parameters to the web service
+        String parameters = str_origin + "&" + str_dest + "&" + modes;
+        // Output format
+        String output = "json";
+        // Building the url to the web service
+        String url = "https://maps.googleapis.com/maps/api/directions/" + output + "?" + parameters + "&key=" + getString(R.string.google_maps_key);
+        return url;
+    }
 
 }

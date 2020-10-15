@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import ean.ecom.shipping.main.order.CurrentOrderListModel;
+import ean.ecom.shipping.other.StaticValues;
 
 import static ean.ecom.shipping.main.MainMapsFragment.shippingOrderAdaptor;
 
@@ -96,6 +97,7 @@ public class DBQuery {
 
                                 if (documentSnapshot.get( "shipping_geo_point" ) != null) {
                                     currentOrderListModel.setShippingGeoPoint( documentSnapshot.getGeoPoint( "shipping_geo_point" ) );
+                                    StaticValues.MY_GEO_POINTS = documentSnapshot.getGeoPoint( "shipping_geo_point" );
                                 }
                                 if (documentSnapshot.get( "shop_geo_point" ) != null) {
                                     currentOrderListModel.setShopGeoPoint( documentSnapshot.getGeoPoint( "shop_geo_point" ) );
@@ -104,8 +106,9 @@ public class DBQuery {
                                 String delivery_id = documentSnapshot.getId();
                                 String shop_id = documentSnapshot.get( "shop_id" ).toString();
                                 String order_id = documentSnapshot.get( "order_id" ).toString();
+                                String delivery_status = documentSnapshot.get( "delivery_status" ).toString();
 
-                                String order_time_Str = documentSnapshot.get( "order_time" ).toString();
+                                String order_time_Str = documentSnapshot.get( "accepted_date" ).toString();
 //                                Timestamp order_time = documentSnapshot.getTimestamp( "order_time" );
 
                                 String shipping_address = documentSnapshot.get( "shipping_address" ).toString();
@@ -114,6 +117,7 @@ public class DBQuery {
                                 currentOrderListModel.setDeliveryID( delivery_id );
                                 currentOrderListModel.setShopID( shop_id );
                                 currentOrderListModel.setOrderID( order_id );
+                                currentOrderListModel.setOrderStatus( delivery_status );
                                 currentOrderListModel.setOrderTime( order_time_Str );
                                 currentOrderListModel.setShippingAddress( shipping_address );
                                 currentOrderListModel.setShopAddress( shop_address );

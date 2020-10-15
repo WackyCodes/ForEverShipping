@@ -19,35 +19,25 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
-import androidx.databinding.DataBindingUtil;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.Timestamp;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.GeoPoint;
 
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
-import ean.ecom.shipping.R;
-import ean.ecom.shipping.database.DBQuery;
-import ean.ecom.shipping.other.StaticMethods;
 import ean.ecom.shipping.other.StaticValues;
-import ean.ecom.shipping.profile.User;
-import ean.ecom.shipping.profile.UserClient;
-import ean.ecom.shipping.profile.UserLocation;
 
 import static ean.ecom.shipping.database.DBQuery.currentUser;
 import static ean.ecom.shipping.database.DBQuery.firebaseFirestore;
+import static ean.ecom.shipping.other.StaticValues.USER_ACCOUNT;
 
 /**
  * Created by Shailendra (WackyCodes) on 29/09/2020 11:47
@@ -62,7 +52,8 @@ public class LocationService extends Service {
 
     private FusedLocationProviderClient mFusedLocationClient;
     private final static long UPDATE_INTERVAL = 4 * 1000;  /* 4 secs */
-    private final static long FASTEST_INTERVAL = 5000; /* 5 sec */
+    private final static long FASTEST_INTERVAL = 2000; /* 5 sec */
+
 
     @Nullable
     @Override
@@ -73,7 +64,6 @@ public class LocationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         if (Build.VERSION.SDK_INT >= 26) {
@@ -85,11 +75,12 @@ public class LocationService extends Service {
             ((NotificationManager) getSystemService( Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
 
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                    .setContentTitle("")
+                    .setContentTitle("service noti")
                     .setContentText("").build();
 
             startForeground(1, notification);
         }
+
     }
 
     @Override
@@ -104,10 +95,10 @@ public class LocationService extends Service {
         // ---------------------------------- LocationRequest ------------------------------------
         // Create the location request to start receiving updates
         LocationRequest mLocationRequestHighAccuracy = new LocationRequest();
-        mLocationRequestHighAccuracy.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+//        mLocationRequestHighAccuracy.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequestHighAccuracy.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         mLocationRequestHighAccuracy.setInterval(UPDATE_INTERVAL);
         mLocationRequestHighAccuracy.setFastestInterval(FASTEST_INTERVAL);
-
 
         // new Google API SDK v11 uses getFusedLocationProviderClient(this)
         if (ActivityCompat.checkSelfPermission(this,
@@ -125,48 +116,60 @@ public class LocationService extends Service {
                         Log.d(TAG, "onLocationResult: got location result.");
 
                         Location location = locationResult.getLastLocation();
+                        Log.d(TAG, "onLocationResult: got location.");
 
                         if (location != null) {
-//                             User user = ((UserClient)(getApplicationContext())).getUser();
-                             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+//                        User user = ((UserClient)(getApplicationContext())).getUser();
+                            GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
 //                             UserLocation userLocation = new UserLocation(user, geoPoint, Calendar.getInstance().getTime() );
-                            StaticValues.MY_GEO_POINTS = geoPoint;
+                            Log.d(TAG, "onLocationResult: got geoPoint ." + geoPoint.toString());
+
                             Map<String, Object> updateMap = new HashMap <>();
                             updateMap.put( "my_geo_point", geoPoint );
-                            updateMap.put( "last_location_time", Timestamp.now() );
+
+                            StaticValues.MY_GEO_POINTS = geoPoint;
+//                        updateMap.put( "last_location_time", Timestamp.now() );
 //                            Timestamp timestamp = Timestamp.now();
+                            Log.d(TAG, "onLocationResult: Updating ... .");
+
                             if ( currentUser != null ){
                                 saveUserLocation( updateMap );
+                                Log.d(TAG, "saveUserLocation: Updating ... .");
+                            }else{
+                                Log.d(TAG, "saveUserLocation: Null User ... .");
                             }
+                        }else{
+                            Toast.makeText( LocationService.this, "Location Null", Toast.LENGTH_SHORT ).show();
                         }
+                    }
+
+                    @Override
+                    public void onLocationAvailability(LocationAvailability locationAvailability) {
+                        super.onLocationAvailability( locationAvailability );
                     }
                 },
                 Looper.myLooper()); // Looper.myLooper tells this to repeat forever until thread is destroyed
     }
 
     private void saveUserLocation(final Map<String, Object> updateMap ){
+        if ( USER_ACCOUNT.getUser_mobile() != null)
+            firebaseFirestore.collection( "DELIVERY_BOYS" )
+                .document( StaticValues.USER_MOBILE )
+                .update( updateMap )
+                .addOnSuccessListener( new OnSuccessListener <Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "onComplete: \ninserted user location into database." +
+                                "\n Lat Long (Geo Point) : " + updateMap.get( "my_geo_point" ).toString());
 
-         try{
-              DocumentReference locationRef = firebaseFirestore.collection( "DELIVERY_BOY" )
-                      .document( currentUser.getUid() );
-              locationRef
-                      .update( updateMap )
-                      .addOnCompleteListener( new OnCompleteListener <Void>() {
-                          @Override
-                          public void onComplete(@NonNull Task <Void> task) {
-                              if(task.isSuccessful()){
-                                  // Successfully Update
-                                  Log.d(TAG, "onComplete: \ninserted user location into database." +
-                                          "\n Lat Long (Geo Point) : " + updateMap.get( "my_geo_point" ).toString());
-                              }
-                          }
-                      } );
-
-         }catch (NullPointerException e){
-              Log.e(TAG, "saveUserLocation: User instance is null, stopping location service.");
-              Log.e(TAG, "saveUserLocation: NullPointerException: "  + e.getMessage() );
-              stopSelf();
-         }
+                    }
+                } )
+                .addOnFailureListener( new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Failed TO Update");
+                    }
+                } );
 
     }
 

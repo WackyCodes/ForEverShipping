@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -72,7 +73,7 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
         private TextView shippingAddressText;
 
         private TextView getShopDirection;
-        private ImageButton viewOrderDetailsBtn;
+        private ImageView viewOrderDetailsBtn;
 
         public ViewHolder(@NonNull View itemView) {
             super( itemView );
@@ -150,7 +151,7 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
                 onDrawingPathLine( mapActionFragment, StaticValues.MY_GEO_POINTS, model.getShippingGeoPoint() );
 
             }else{
-
+                onDrawingPathLine( mapActionFragment, new GeoPoint( 23.29900000,76.00023100 ), model.getShippingGeoPoint() );
             }
         }
 

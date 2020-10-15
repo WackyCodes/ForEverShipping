@@ -2,6 +2,8 @@ package ean.ecom.shipping.other;
 
 import com.google.firebase.firestore.GeoPoint;
 
+import ean.ecom.shipping.profile.User;
+
 /**
  * Created by Shailendra (WackyCodes) on 21/08/2020 03:52
  * ( To Know more, Click : https://linktr.ee/wackycodes )
@@ -9,6 +11,8 @@ import com.google.firebase.firestore.GeoPoint;
 public class StaticValues {
 
     public static String APP_VERSION = "em-1-01"; // ev-1-01
+
+    public static final User USER_ACCOUNT = new User();
 
     public static final int STORAGE_PERMISSION = 1;
     /**  Order Status
@@ -31,9 +35,12 @@ public class StaticValues {
     public static final int ID_MOVE = 54;
     public static final int ID_COPY = 55;
 
+    // for Order View , local ID
+    public static final int VIEW_ORDER_FROM_NOTIFICATION = 1;
+    public static final int VIEW_ORDER_FROM_CURRENT_ORDERS = 2;
+    public static final int VIEW_ORDER_FROM_COMPLETE_ORDERS = 3;
 
-
-    public static final String TAG = "WACKYCODES";
+    public static String USER_MOBILE = "7566930540";
 
     public static final int PERMISSIONS_REQUEST_ENABLE_GPS = 101;
     public static final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 102;

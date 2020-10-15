@@ -15,10 +15,11 @@ public class User implements Parcelable {
     private String user_image;
     private String user_mobile;
 
-//    private String user_driving_licence;
-//    private String user_vehicle_number;
-//    private String user_address;
-//    private String user_;
+    private String user_driving_licence;
+    private String user_vehicle_number;
+    private String user_address;
+    private String user_city_code;
+    private String user_city;
 
 
     public User(String user_email, String user_id, String user_name, String user_image, String user_mobile) {
@@ -108,6 +109,46 @@ public class User implements Parcelable {
 
     public void setUser_mobile(String user_mobile) {
         this.user_mobile = user_mobile;
+    }
+
+    public String getUser_driving_licence() {
+        return user_driving_licence;
+    }
+
+    public void setUser_driving_licence(String user_driving_licence) {
+        this.user_driving_licence = user_driving_licence;
+    }
+
+    public String getUser_vehicle_number() {
+        return user_vehicle_number;
+    }
+
+    public void setUser_vehicle_number(String user_vehicle_number) {
+        this.user_vehicle_number = user_vehicle_number;
+    }
+
+    public String getUser_address() {
+        return user_address;
+    }
+
+    public void setUser_address(String user_address) {
+        this.user_address = user_address;
+    }
+
+    public String getUser_city_code() {
+        return user_city_code;
+    }
+
+    public void setUser_city_code(String user_city_code) {
+        this.user_city_code = user_city_code;
+    }
+
+    public String getUser_city() {
+        return user_city;
+    }
+
+    public void setUser_city(String user_city) {
+        this.user_city = user_city;
     }
 
     @Override

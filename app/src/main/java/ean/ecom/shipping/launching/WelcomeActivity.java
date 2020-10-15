@@ -21,6 +21,7 @@ import ean.ecom.shipping.other.StaticValues;
 import static ean.ecom.shipping.database.DBQuery.currentUser;
 import static ean.ecom.shipping.database.DBQuery.firebaseAuth;
 import static ean.ecom.shipping.other.StaticMethods.showToast;
+import static ean.ecom.shipping.other.StaticMethods.writeFileInLocal;
 import static ean.ecom.shipping.other.StaticValues.STORAGE_PERMISSION;
 
 public class WelcomeActivity extends AppCompatActivity implements CheckUserPermission {
@@ -115,9 +116,10 @@ public class WelcomeActivity extends AppCompatActivity implements CheckUserPermi
         if (currentUser != null){
             // Getting Data from Local Directory. If user has login before, then we can get the data that we had created at signUp/login time
             String userMobile = StaticMethods.readFileFromLocal(this, "mobile" );
-//            String email = StaticMethods.readFileFromLocal(this, "shop" );
+            String cityCode = StaticMethods.readFileFromLocal(this, "citycode" );
 
-            if (userMobile != null){
+            if (userMobile != null && cityCode != null){
+                StaticValues.USER_MOBILE = userMobile;
                 // Now We have to check whether User has permission to use this app or not
                 adminPermissionPresenter = new CheckPermissionP( this, new UserPermissionM(), userMobile, "");
                 adminPermissionPresenter.onAdminPermissionCheckStart();

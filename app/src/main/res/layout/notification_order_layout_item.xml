@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:padding="4dp"
+    android:layout_margin="4dp"
+    android:background="@drawable/back_rectangle_4dp_layout"
+    android:elevation="4dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/order_id_name_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:text="New Order from AN Shop"
+        android:textColor="@color/colorPrimary"
+        app:layout_constraintEnd_toStartOf="@+id/get_shop_direction"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!--    //Get Shop Direction...-->
+    <TextView
+        android:id="@+id/get_shop_direction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="2dp"
+        android:drawableRight="@drawable/ic_baseline_directions_24"
+        android:drawablePadding="4dp"
+        android:drawableTint="@color/colorPrimary"
+        android:gravity="center_horizontal"
+        android:padding="4dp"
+        android:textAlignment="center"
+        android:textColor="@color/colorGreen"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!--    // Shop Address...-->
+
+    <TextView
+        android:id="@+id/shop_address_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:padding="2dp"
+        android:text="Shop Address :"
+        android:textColor="@color/colorPrimary"
+        app:layout_constraintEnd_toEndOf="@+id/order_id_name_text"
+        app:layout_constraintStart_toStartOf="@+id/order_id_name_text"
+        app:layout_constraintTop_toBottomOf="@+id/order_id_name_text" />
+
+    <!--    // Shipping Address -->
+    <TextView
+        android:id="@+id/shipping_address_sample"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:padding="2dp"
+        android:text="Shipping at :"
+        android:textColor="@color/colorBlack"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/shop_address_text" />
+
+    <TextView
+        android:id="@+id/shipping_address_text"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="2dp"
+        android:padding="2dp"
+        android:text="Shipping Address :"
+        android:textColor="@color/colorGreen"
+        app:layout_constraintEnd_toStartOf="@+id/get_shipping_direction"
+        app:layout_constraintStart_toEndOf="@+id/shipping_address_sample"
+        app:layout_constraintTop_toTopOf="@+id/shipping_address_sample" />
+    <!--    // Order Details...-->
+    <TextView
+        android:id="@+id/get_shipping_direction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="2dp"
+        android:drawableRight="@drawable/ic_baseline_directions_24"
+        android:drawablePadding="4dp"
+        android:drawableTint="@color/colorGreen"
+        android:padding="4dp"
+        android:textColor="@color/colorBlack"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

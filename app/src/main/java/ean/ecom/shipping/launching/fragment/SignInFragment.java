@@ -30,6 +30,7 @@ import ean.ecom.shipping.launching.WelcomeActivity;
 import io.grpc.util.TransmitStatusRuntimeExceptionInterceptor;
 
 import static ean.ecom.shipping.other.StaticMethods.writeFileInLocal;
+import static ean.ecom.shipping.other.StaticValues.USER_ACCOUNT;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -174,6 +175,12 @@ public class SignInFragment extends Fragment implements CheckUserPermission.Chec
             // Check Successfully!
             try {
                 startActivity( new Intent( getActivity(), MainActivity.class ) );
+
+                if (USER_ACCOUNT.getUser_city_code() != null){
+                    writeFileInLocal( getContext(), "citycode", USER_ACCOUNT.getUser_city_code()  );
+                }else{
+                    writeFileInLocal( getContext(), "citycode", "BHOPAL" );
+                }
                 getActivity().finish();
             }catch (NullPointerException e){
                 Log.d( "SignInFragment", "Activity Null : "+ e.getMessage() );
