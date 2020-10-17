@@ -8,6 +8,7 @@
     tools:context=".main.order.OrderViewFragment">
 
     <RelativeLayout
+        android:background="@color/colorWhite"
         android:id="@+id/layout_details"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -312,7 +313,22 @@
             android:translationZ="4dp"
             android:textColor="@color/colorWhite"
             android:background="@drawable/back_rectangle_4dp_layout"
-            android:backgroundTint="@color/colorPrimary"
+            android:backgroundTint="@color/colorGreen"
+            android:layout_alignParentBottom="true"
+            />
+
+        <Button
+            android:visibility="gone"
+            android:id="@+id/order_cancel_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="CANCEL"
+            android:elevation="8dp"
+            android:layout_margin="8dp"
+            android:translationZ="4dp"
+            android:textColor="@color/colorWhite"
+            android:background="@drawable/back_rectangle_4dp_layout"
+            android:backgroundTint="@color/colorRed"
             android:layout_alignParentBottom="true"
             />
 

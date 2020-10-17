@@ -13,6 +13,12 @@ import com.google.firebase.firestore.GeoPoint;
 import java.util.List;
 
 import ean.ecom.shipping.R;
+import ean.ecom.shipping.main.order.CurrentOrderListModel;
+import ean.ecom.shipping.main.order.OrderViewFragment;
+
+import static ean.ecom.shipping.database.DBQuery.orderNotificationList;
+import static ean.ecom.shipping.other.StaticValues.NOTIFICATION_TYPE_ORDERS;
+import static ean.ecom.shipping.other.StaticValues.VIEW_ORDER_FROM_NOTIFICATION;
 
 /**
  * Created by Shailendra (WackyCodes) on 15/10/2020 17:11
@@ -20,31 +26,40 @@ import ean.ecom.shipping.R;
  */
 public class NotificationAdaptor extends RecyclerView.Adapter<NotificationAdaptor.OrderViewHolder> {
 
-    List<NotificationModel> notificationModelList;
+    private OnNotificationUpdater onNotificationUpdater;
+    private int notificationType;
 
-//    public NotificationAdaptor(List <NotificationModel> notificationModelList) {
-//        this.notificationModelList = notificationModelList;
-//    }
 
-    public NotificationAdaptor() {
+    public NotificationAdaptor(OnNotificationUpdater onNotificationUpdater, int notificationType) {
+        this.onNotificationUpdater = onNotificationUpdater;
+        this.notificationType = notificationType;
     }
 
     @NonNull
     @Override
     public OrderViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View orderView = LayoutInflater.from( parent.getContext() )
-                .inflate( R.layout.notification_order_layout_item, parent, false );
-        return new OrderViewHolder( orderView );
+        if (notificationType == NOTIFICATION_TYPE_ORDERS){
+            View orderView = LayoutInflater.from( parent.getContext() )
+                    .inflate( R.layout.notification_order_layout_item, parent, false );
+            return new OrderViewHolder( orderView );
+        }else{
+            return null;
+        }
     }
 
     @Override
     public void onBindViewHolder(@NonNull OrderViewHolder holder, int position) {
-        holder.setData( position );
+        if (notificationType == NOTIFICATION_TYPE_ORDERS)
+            holder.setData( position );
     }
 
     @Override
     public int getItemCount() {
-        return notificationModelList.size();
+        if (notificationType == NOTIFICATION_TYPE_ORDERS)
+            return orderNotificationList.size();
+        else
+//            return notificationModelList.size();
+        return 0;
     }
 
     public class OrderViewHolder extends RecyclerView.ViewHolder {
@@ -69,23 +84,24 @@ public class NotificationAdaptor extends RecyclerView.Adapter<NotificationAdapto
 
         private void setData(int position){
 
-            NotificationModel.NotificationOrderModel orderModel = notificationModelList.get( position ).getNotificationOrderModel();
+            CurrentOrderListModel orderModel = orderNotificationList.get( position );
 
-            tvShopName.setText( "New Order from " + orderModel.getOrderShopName() );
-            tvShopAddress.setText( orderModel.getOrderShopAddress() );
-            tvShippingAddress.setText( orderModel.getOrderShippingAddress() );
+            tvShopName.setText( "New Order from " + orderModel.getShopName() );
+            tvShopAddress.setText( orderModel.getShopAddress() );
+            tvShippingAddress.setText( orderModel.getShippingAddress() );
 
             itemView.setOnClickListener( v-> {
-                // OnClick...
-
+                // on Order Click...
+                onNotificationUpdater.onNotificationClick(
+                        new OrderViewFragment( VIEW_ORDER_FROM_NOTIFICATION, orderModel.getOrderID(), orderModel.getShopID(), orderModel.getDeliveryID() ) );
             } );
 
             tvGetShopDirection.setOnClickListener( v -> {
-                setTvGetShopDirection(orderModel.getOrderShopGeoPoint(), orderModel.getOrderShopName());
+                setTvGetShopDirection(orderModel.getShopGeoPoint(), orderModel.getShopName());
             });
 
             tvGetShippingDirection.setOnClickListener( v -> {
-                setTvGetShippingDirection( orderModel.getOrderShippingGeoPoint(), orderModel.getOrderShippingAddress() );
+                setTvGetShippingDirection( orderModel.getShippingGeoPoint(), orderModel.getShippingAddress() );
             } );
 
         }

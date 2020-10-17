@@ -9,10 +9,20 @@ import androidx.fragment.app.FragmentTransaction;
 import android.os.Bundle;
 import android.widget.FrameLayout;
 
+import ean.ecom.shipping.notification.NotificationFragment;
+
+import static ean.ecom.shipping.other.StaticValues.NOTIFICATION_TYPE_ORDERS;
+
 public class SetFragmentActivity extends AppCompatActivity implements OnFragmentSetListener {
+
+    public static final int FRAGMENT_NOTIFICATION_OTHERS = 1;
+    public static final int FRAGMENT_NOTIFICATION_ORDERS = 2;
+    public static final int FRAGMENT_ORDER_VIEW = 3;
 
     public FrameLayout frameLayout;
     public static FragmentManager activityFragmentManager;
+
+    private int fragmentID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +31,8 @@ public class SetFragmentActivity extends AppCompatActivity implements OnFragment
         frameLayout = findViewById( R.id.activity_frame_layout );
         activityFragmentManager = getSupportFragmentManager();
 
+        fragmentID = getIntent().getIntExtra( "FRAGMENT_CODE", -1 );
+
         Toolbar toolbar = findViewById( R.id.appToolbar );
         setSupportActionBar( toolbar );
         try {
@@ -28,7 +40,18 @@ public class SetFragmentActivity extends AppCompatActivity implements OnFragment
             getSupportActionBar().setTitle( "4Ever Mall" );
         }catch (NullPointerException ignored){ }
 
+        setFrameLayout(fragmentID);
+    }
 
+    private void setFrameLayout(int fragmentID){
+        switch (fragmentID){
+            case FRAGMENT_NOTIFICATION_ORDERS:
+                setActivityFragmentManager( new NotificationFragment( this, NOTIFICATION_TYPE_ORDERS ) );
+                break;
+            case FRAGMENT_ORDER_VIEW:
+            default:
+                break;
+        }
     }
 
     @Override
@@ -39,6 +62,16 @@ public class SetFragmentActivity extends AppCompatActivity implements OnFragment
     private void setActivityFragmentManager(Fragment fragment){
         FragmentTransaction fragmentTransaction = activityFragmentManager.beginTransaction();
         fragmentTransaction.add( frameLayout.getId(), fragment );
+        fragmentTransaction.commit();
+    }
+
+    @Override
+    public void setNextFragment(Fragment fragment){
+        FragmentTransaction fragmentTransaction = activityFragmentManager.beginTransaction();
+        fragmentTransaction.add( frameLayout.getId(), fragment );
+        fragmentTransaction.setCustomAnimations( R.anim.slide_from_left, R.anim.slide_out_from_right,
+                R.anim.slide_from_right, R.anim.slide_out_from_left);
+        fragmentTransaction.addToBackStack( null );
         fragmentTransaction.commit();
     }
 

@@ -40,6 +40,9 @@ public class StaticValues {
     public static final int VIEW_ORDER_FROM_CURRENT_ORDERS = 2;
     public static final int VIEW_ORDER_FROM_COMPLETE_ORDERS = 3;
 
+    public static final int NOTIFICATION_TYPE_ORDERS = 1;
+    public static final int NOTIFICATION_TYPE_OTHERS = 2;
+
     public static String USER_MOBILE = "7566930540";
 
     public static final int PERMISSIONS_REQUEST_ENABLE_GPS = 101;

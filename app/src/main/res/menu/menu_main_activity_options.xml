@@ -12,6 +12,14 @@
 <!--        app:showAsAction="always"/>-->
 
     <item
+        android:id="@+id/menu_notification_orders"
+        android:orderInCategory="100"
+        android:icon="@drawable/ic_baseline_local_mall_24"
+        android:iconTint="@color/colorWhite"
+        android:title="Orders"
+        app:showAsAction="always"/>
+
+    <item
         android:id="@+id/menu_notification_main"
         android:orderInCategory="100"
         android:icon="@drawable/ic_baseline_notifications_24"

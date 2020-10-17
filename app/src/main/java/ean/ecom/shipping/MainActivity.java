@@ -117,12 +117,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //        }else{
 //            badgeNotifyCount.setVisibility( View.GONE );
 //        }
-        notificationItem.getActionView().setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                Intent catIntent = new Intent( MainActivity.this, NotificationActivity.class);
-//                startActivity( catIntent );
-            }
+        notificationItem.getActionView().setOnClickListener( v -> {
+//            Intent notifyIntent = new Intent( MainActivity.this, SetFragmentActivity.class);
+//            notifyIntent.putExtra( "FRAGMENT_CODE", SetFragmentActivity.FRAGMENT_NOTIFICATION_OTHERS );
+//            startActivity( notifyIntent );
+        } );
+
+        // notification Order badge...
+        MenuItem notifyOrderItem = menu.findItem( R.id.menu_notification_orders );
+        notifyOrderItem.setActionView( R.layout.badge_order_notification_layout );
+        badgeOrderCount = notifyOrderItem.getActionView().findViewById( R.id.badge_notify_order_count );
+//        if (AdminQuery.notificationModelList.size() > 0){
+//            badgeOrderCount.setVisibility( View.VISIBLE );
+//            badgeOrderCount.setText( String.valueOf( AdminQuery.notificationModelList.size() ) );
+//        }else{
+//            badgeOrderCount.setVisibility( View.GONE );
+//        }
+        notifyOrderItem.getActionView().setOnClickListener( v -> {
+            Intent notifyIntent = new Intent( MainActivity.this, SetFragmentActivity.class);
+            notifyIntent.putExtra( "FRAGMENT_CODE", SetFragmentActivity.FRAGMENT_NOTIFICATION_ORDERS );
+            startActivity( notifyIntent );
         } );
 
         return true;

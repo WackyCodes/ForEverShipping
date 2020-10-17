@@ -1,5 +1,7 @@
 package ean.ecom.shipping.database;
 
+import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -24,10 +26,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ean.ecom.shipping.MainActivity;
 import ean.ecom.shipping.main.order.CurrentOrderListModel;
+import ean.ecom.shipping.notification.NotificationModel;
 import ean.ecom.shipping.other.StaticValues;
 
 import static ean.ecom.shipping.main.MainMapsFragment.shippingOrderAdaptor;
+import static ean.ecom.shipping.notification.NotificationFragment.orderNotificationAdaptor;
 
 /**
  * Created by Shailendra (WackyCodes) on 21/08/2020 03:40
@@ -44,7 +49,9 @@ public class DBQuery {
 
     public static void getOrderDetailsQuery(String CITY_CODE, String orderID) {
 
-        firebaseFirestore.collection( "DELIVERY" ).document( CITY_CODE ).collection( "DELIVERY" ).document( orderID ).get().addOnCompleteListener( new OnCompleteListener <DocumentSnapshot>() {
+        firebaseFirestore.collection( "DELIVERY" ).document( CITY_CODE )
+                .collection( "DELIVERY" ).document( orderID ).get()
+                .addOnCompleteListener( new OnCompleteListener <DocumentSnapshot>() {
             @Override
             public void onComplete(@NonNull Task <DocumentSnapshot> task) {
 
@@ -65,7 +72,6 @@ public class DBQuery {
                 } else {
 
                 }
-
             }
         } );
 
@@ -74,61 +80,80 @@ public class DBQuery {
     //    ListenerRegistration listenerRegistration;
     public static ListenerRegistration userNotificationLR;
     public static List <CurrentOrderListModel> currentOrderListModelList = new ArrayList <>();
+    public static List <NotificationModel> notificationModelList = new ArrayList <>();
+    public static List <CurrentOrderListModel> orderNotificationList = new ArrayList <>();
     // Get Notify Every New Order...
     public static void getNewOrderNotification(String CITY_CODE) {
 
         userNotificationLR = firebaseFirestore.collection( "DELIVERY" )
                 .document( CITY_CODE ).collection( "DELIVERY" )
                 .whereEqualTo( "delivery_status", "ACCEPTED" )
-                .addSnapshotListener( new EventListener <QuerySnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-                        if (queryDocumentSnapshots != null) {
-                            if (currentOrderListModelList != null) {
-                                currentOrderListModelList.clear();
-                            } else {
-                                currentOrderListModelList = new ArrayList <>();
+                .addSnapshotListener( (queryDocumentSnapshots, e) -> {
+                    if (queryDocumentSnapshots != null) {
+                        if (orderNotificationList != null) {
+                            orderNotificationList.clear();
+                        } else {
+                            orderNotificationList = new ArrayList <>();
+                        }
+                        int badgeCount = 0;
+                        CurrentOrderListModel currentOrderListModel;
+                        // Load Data...
+                        for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
+                            currentOrderListModel = new CurrentOrderListModel();
+
+                            if (documentSnapshot.get( "shipping_geo_point" ) != null) {
+                                currentOrderListModel.setShippingGeoPoint( documentSnapshot.getGeoPoint( "shipping_geo_point" ) );
+                                StaticValues.MY_GEO_POINTS = documentSnapshot.getGeoPoint( "shipping_geo_point" );
+                            }
+                            if (documentSnapshot.get( "shop_geo_point" ) != null) {
+                                currentOrderListModel.setShopGeoPoint( documentSnapshot.getGeoPoint( "shop_geo_point" ) );
                             }
 
-                            CurrentOrderListModel currentOrderListModel;
-                            // Load Data...
-                            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
-                                currentOrderListModel = new CurrentOrderListModel();
+                            String delivery_id = documentSnapshot.getId();
+//                            String shop_helpline = documentSnapshot.get( "shop_helpline" ).toString();
+//                            String verify_otp = documentSnapshot.get( "verify_otp" ).toString();
 
-                                if (documentSnapshot.get( "shipping_geo_point" ) != null) {
-                                    currentOrderListModel.setShippingGeoPoint( documentSnapshot.getGeoPoint( "shipping_geo_point" ) );
-                                    StaticValues.MY_GEO_POINTS = documentSnapshot.getGeoPoint( "shipping_geo_point" );
-                                }
-                                if (documentSnapshot.get( "shop_geo_point" ) != null) {
-                                    currentOrderListModel.setShopGeoPoint( documentSnapshot.getGeoPoint( "shop_geo_point" ) );
-                                }
+                            String shop_id = documentSnapshot.get( "shop_id" ).toString();
+                            String shop_name = documentSnapshot.get( "shop_name" ).toString();
+                            String order_id = documentSnapshot.get( "order_id" ).toString();
+                            String delivery_status = documentSnapshot.get( "delivery_status" ).toString();
 
-                                String delivery_id = documentSnapshot.getId();
-                                String shop_id = documentSnapshot.get( "shop_id" ).toString();
-                                String order_id = documentSnapshot.get( "order_id" ).toString();
-                                String delivery_status = documentSnapshot.get( "delivery_status" ).toString();
-
-                                String order_time_Str = documentSnapshot.get( "accepted_date" ).toString();
+                            String order_time_Str = documentSnapshot.get( "accepted_date" ).toString();
 //                                Timestamp order_time = documentSnapshot.getTimestamp( "order_time" );
 
-                                String shipping_address = documentSnapshot.get( "shipping_address" ).toString();
-                                String shop_address = documentSnapshot.get( "shop_address" ).toString();
+                            String shipping_address = documentSnapshot.get( "shipping_address" ).toString();
+                            String shop_address = documentSnapshot.get( "shop_address" ).toString();
 
-                                currentOrderListModel.setDeliveryID( delivery_id );
-                                currentOrderListModel.setShopID( shop_id );
-                                currentOrderListModel.setOrderID( order_id );
-                                currentOrderListModel.setOrderStatus( delivery_status );
-                                currentOrderListModel.setOrderTime( order_time_Str );
-                                currentOrderListModel.setShippingAddress( shipping_address );
-                                currentOrderListModel.setShopAddress( shop_address );
+                            currentOrderListModel.setDeliveryID( delivery_id );
+                            currentOrderListModel.setShopID( shop_id );
+                            currentOrderListModel.setShopName( shop_name );
+                            currentOrderListModel.setOrderID( order_id );
+                            currentOrderListModel.setOrderStatus( delivery_status );
+                            currentOrderListModel.setOrderTime( order_time_Str );
+                            currentOrderListModel.setShippingAddress( shipping_address );
+                            currentOrderListModel.setShopAddress( shop_address );
 
-                                // Add Model in the list..
-                                currentOrderListModelList.add( currentOrderListModel );
-                                if ( shippingOrderAdaptor != null ){
-                                    shippingOrderAdaptor.notifyDataSetChanged();
-                                }
+                            // Add Model in the list...
+                            orderNotificationList.add( currentOrderListModel );
+                            if ( orderNotificationAdaptor != null ){
+                                orderNotificationAdaptor.notifyDataSetChanged();
                             }
+
+                            badgeCount = badgeCount + 1;
+
                         }
+//                        if ( !orderNotificationList.contains( currentOrderListModel )){
+//
+//                        }
+
+                        if ( badgeCount > 0 &&  MainActivity.badgeOrderCount != null){
+                            MainActivity.badgeOrderCount.setVisibility( View.VISIBLE );
+                            MainActivity.badgeOrderCount.setText(String.valueOf( badgeCount ));
+                        }
+                        else if (MainActivity.badgeOrderCount != null){
+                            MainActivity.badgeOrderCount.setVisibility( View.INVISIBLE );
+                        }
+
                     }
                 } );
     }

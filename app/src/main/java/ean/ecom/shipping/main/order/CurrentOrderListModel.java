@@ -24,6 +24,7 @@ public class CurrentOrderListModel {
     private String orderID;
     private String deliveryID;
     private String shopID;
+    private String shopName;
     private String shopAddress;
     private String shippingAddress;
     private String orderTime;
@@ -87,6 +88,14 @@ public class CurrentOrderListModel {
 
     public void setShopID(String shopID) {
         this.shopID = shopID;
+    }
+
+    public String getShopName() {
+        return shopName;
+    }
+
+    public void setShopName(String shopName) {
+        this.shopName = shopName;
     }
 
     public String getOrderTime() {
