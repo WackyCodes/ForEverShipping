@@ -16,6 +16,7 @@ import java.util.Map;
 
 import ean.ecom.shipping.database.DBQuery;
 import ean.ecom.shipping.other.DialogsClass;
+import ean.ecom.shipping.profile.User;
 
 import static ean.ecom.shipping.database.DBQuery.currentUser;
 import static ean.ecom.shipping.database.DBQuery.firebaseAuth;
@@ -56,36 +57,29 @@ public class UserPermissionM implements CheckUserPermission.CheckAppUsePermissio
 
         firebaseFirestore.collection( "DELIVERY_BOYS" )
                 .document( mobile )
-                .get().addOnCompleteListener( new OnCompleteListener <DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task <DocumentSnapshot> task) {
-                if (task.isSuccessful()){
-                    Boolean is_allowed = task.getResult().getBoolean( "is_allowed" );
-                    if (is_allowed) {
-                        try{
-                            USER_ACCOUNT.setUser_email( task.getResult().get( "email" ).toString() );
-                            USER_ACCOUNT.setUser_mobile( task.getResult().get( "mobile" ).toString() );
-                            USER_ACCOUNT.setUser_id( task.getResult().get( "auth_id" ).toString() );
-                            USER_ACCOUNT.setUser_city_code( task.getResult().get( "city_code" ).toString() );
-                            USER_ACCOUNT.setUser_name( task.getResult().get( "name" ).toString() );
-                            USER_ACCOUNT.setUser_image( task.getResult().get( "admin_photo" ).toString() );
-                            USER_ACCOUNT.setUser_address( task.getResult().get( "address" ).toString() );
+                .get().addOnCompleteListener( task -> {
+                    if (task.isSuccessful()){
+                        Boolean is_allowed = task.getResult().getBoolean( "is_allowed" );
+                        if (is_allowed) {
+                            try{
+//                                User user = (User) task.getResult().getData();
 
-                        }catch (NullPointerException e){
+                                USER_ACCOUNT.setData(  task.getResult().getData() );
 
-                        }finally {
-                            onCheckFinisher.onAdminPermissionCheckFinish( true );
+                            }catch (NullPointerException e){
+
+                            }finally {
+                                onCheckFinisher.onAdminPermissionCheckFinish( true );
+                            }
+
+                        }else{
+                            onCheckFinisher.onAdminPermissionCheckFinish( false );
                         }
 
                     }else{
                         onCheckFinisher.onAdminPermissionCheckFinish( false );
                     }
-
-                }else{
-                    onCheckFinisher.onAdminPermissionCheckFinish( false );
-                }
-            }
-        } );
+                } );
 
     }
 
@@ -155,25 +149,22 @@ public class UserPermissionM implements CheckUserPermission.CheckAppUsePermissio
 
         firebaseFirestore.collection( "DELIVERY_BOYS" )
                 .document( mobile )
-                .addSnapshotListener( new EventListener <DocumentSnapshot>() {
-                    @Override
-                    public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
-                        if (documentSnapshot.exists()){
+                .addSnapshotListener( (documentSnapshot, e) -> {
+                    if (documentSnapshot.exists()){
 //                            String authID = documentSnapshot.get( "auth_id" ).toString();
-                            if (documentSnapshot.get( "auth_id" ) != null ){
-                                // Show Pass...
-                                String adminEmail = documentSnapshot.get( "email" ).toString();
-                                checkIsUserRegistered.onUserRegisteredChecked( true, adminEmail );
+                        if (documentSnapshot.get( "user_id" ) != null ){
+                            // Show Pass...
+                            String adminEmail = documentSnapshot.get( "user_email" ).toString();
+                            checkIsUserRegistered.onUserRegisteredChecked( true, adminEmail );
 
-                            }else{
-                                // Show Create Pass..
-                                String adminEmail = documentSnapshot.get( "email" ).toString();
-                                checkIsUserRegistered.onUserRegisteredChecked( false, adminEmail );
-                            }
+                        }else{
+                            // Show Create Pass..
+                            String adminEmail = documentSnapshot.get( "user_email" ).toString();
+                            checkIsUserRegistered.onUserRegisteredChecked( false, adminEmail );
                         }
-                        else{
-                            checkIsUserRegistered.onNotRegisteredUser();
-                        }
+                    }
+                    else{
+                        checkIsUserRegistered.onNotRegisteredUser();
                     }
                 } );
 

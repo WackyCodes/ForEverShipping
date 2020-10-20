@@ -39,6 +39,7 @@ public class StaticValues {
     public static final int VIEW_ORDER_FROM_NOTIFICATION = 1;
     public static final int VIEW_ORDER_FROM_CURRENT_ORDERS = 2;
     public static final int VIEW_ORDER_FROM_COMPLETE_ORDERS = 3;
+    public static final int VIEW_ORDER_PICKED_ORDERS = 4;
 
     public static final int NOTIFICATION_TYPE_ORDERS = 1;
     public static final int NOTIFICATION_TYPE_OTHERS = 2;

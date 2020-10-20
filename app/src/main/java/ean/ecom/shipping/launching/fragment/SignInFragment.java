@@ -174,6 +174,8 @@ public class SignInFragment extends Fragment implements CheckUserPermission.Chec
         if (permission){
             // Check Successfully!
             try {
+                // TODO : Add Check -> To Check whether User information updated or not...!
+
                 startActivity( new Intent( getActivity(), MainActivity.class ) );
 
                 if (USER_ACCOUNT.getUser_city_code() != null){

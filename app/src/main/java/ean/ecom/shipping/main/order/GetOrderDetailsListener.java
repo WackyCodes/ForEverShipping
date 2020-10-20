@@ -8,19 +8,19 @@ import java.util.Map;
  */
 public interface GetOrderDetailsListener {
 
-    void onReceiveDetails();
+    void onReceiveDetails( OrderListModel orderListModel );
 
     void onReceiveFailed();
 
     void showDialog();
     void dismissDialog();
 
+    void onAcceptedOrder(String otp);
 
     void onUpdateStatusFailed();
 
     void onUpdateDeliveryStatus( String updateResultID, Map<String, Object> result );
 
     void showToast( String msg );
-    String getOrderID();
 
 }

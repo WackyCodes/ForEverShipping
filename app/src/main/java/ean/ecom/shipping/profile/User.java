@@ -3,11 +3,19 @@ package ean.ecom.shipping.profile;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.firebase.firestore.GeoPoint;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by Shailendra (WackyCodes) on 29/09/2020 19:44
  * ( To Know more, Click : https://linktr.ee/wackycodes )
  */
 public class User implements Parcelable {
+
+    private boolean is_allowed;
+    private GeoPoint my_geo_point;
 
     private String user_email;
     private String user_id;
@@ -34,38 +42,6 @@ public class User implements Parcelable {
 
     }
 
-    protected User(Parcel in) {
-        user_email = in.readString();
-        user_id = in.readString();
-        user_name = in.readString();
-        user_image = in.readString();
-    }
-
-    public static final Creator <User> CREATOR = new Creator <User>() {
-        @Override
-        public User createFromParcel(Parcel in) {
-            return new User( in );
-        }
-
-        @Override
-        public User[] newArray(int size) {
-            return new User[size];
-        }
-    };
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString( user_email );
-        dest.writeString( user_id );
-        dest.writeString( user_name );
-        dest.writeString( user_image );
-    }
-
 
     public String getUser_image() {
         return user_image;
@@ -75,9 +51,6 @@ public class User implements Parcelable {
         this.user_image = user_image;
     }
 
-    public static Creator<User> getCREATOR() {
-        return CREATOR;
-    }
 
     public String getUser_email() {
         return user_email;
@@ -151,9 +124,100 @@ public class User implements Parcelable {
         this.user_city = user_city;
     }
 
+    public boolean isIs_allowed() {
+        return is_allowed;
+    }
+
+    public void setIs_allowed(boolean is_allowed) {
+        this.is_allowed = is_allowed;
+    }
+
+    public GeoPoint getMy_geo_point() {
+        return my_geo_point;
+    }
+
+    public void setMy_geo_point(GeoPoint my_geo_point) {
+        this.my_geo_point = my_geo_point;
+    }
+
     @Override
     public String toString() {
         return "User{" + "user_email='" + user_email + '\'' + ", user_id='" + user_id + '\'' + ", user_name='" + user_name + '\'' + ", user_image='" + user_image + '\'' + ", user_mobile='" + user_mobile + '\'' + '}';
     }
 
+
+    public void setData( Map <String, Object> map ){
+
+        this.user_email = map.get( "user_email" ).toString();
+        this.user_id = map.get( "user_id" ).toString();
+        this.user_name = map.get( "user_name" ).toString();
+        this.user_image = map.get( "user_image" ).toString();
+        this.user_mobile = map.get( "user_mobile" ).toString();
+
+        this.user_driving_licence = map.get( "user_driving_licence" ).toString();
+        this.user_vehicle_number = map.get( "user_vehicle_number" ).toString();
+        this.user_address = map.get( "user_address" ).toString();
+        this.user_city_code = map.get( "user_city_code" ).toString();
+        this.user_city = map.get( "user_city" ).toString();
+        this.my_geo_point = (GeoPoint) map.get( "my_geo_point" );
+
+      /*  this.user_email = user.getUser_email();
+        this.user_id = user.getUser_id();
+        this.user_name = user.getUser_name();
+        this.user_image = user.getUser_image();
+        this.user_mobile = user.getUser_mobile();
+
+        this.user_driving_licence = user.getUser_driving_licence();
+        this.user_vehicle_number = user.getUser_vehicle_number();
+        this.user_address = user.getUser_address();
+        this.user_city_code = user.getUser_city_code();
+        this.user_city = user.getUser_city();
+        this.my_geo_point = user.getMy_geo_point(); */
+    }
+
+    protected User(Parcel in) {
+        is_allowed = in.readByte() != 0;
+        user_email = in.readString();
+        user_id = in.readString();
+        user_name = in.readString();
+        user_image = in.readString();
+        user_mobile = in.readString();
+        user_driving_licence = in.readString();
+        user_vehicle_number = in.readString();
+        user_address = in.readString();
+        user_city_code = in.readString();
+        user_city = in.readString();
+    }
+
+    public static final Creator <User> CREATOR = new Creator <User>() {
+        @Override
+        public User createFromParcel(Parcel in) {
+            return new User( in );
+        }
+
+        @Override
+        public User[] newArray(int size) {
+            return new User[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeByte( (byte) (is_allowed ? 1 : 0) );
+        dest.writeString( user_email );
+        dest.writeString( user_id );
+        dest.writeString( user_name );
+        dest.writeString( user_image );
+        dest.writeString( user_mobile );
+        dest.writeString( user_driving_licence );
+        dest.writeString( user_vehicle_number );
+        dest.writeString( user_address );
+        dest.writeString( user_city_code );
+        dest.writeString( user_city );
+    }
 }

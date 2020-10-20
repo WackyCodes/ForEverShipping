@@ -1,11 +1,17 @@
 package ean.ecom.shipping.database;
 
+import androidx.annotation.NonNull;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import ean.ecom.shipping.main.order.GetOrderDetailsListener;
+import ean.ecom.shipping.other.StaticValues;
 
 import static ean.ecom.shipping.database.DBQuery.currentUser;
 import static ean.ecom.shipping.database.DBQuery.firebaseFirestore;
@@ -15,12 +21,17 @@ import static ean.ecom.shipping.database.DBQuery.firebaseFirestore;
  * ( To Know more, Click : https://linktr.ee/wackycodes )
  */
 public class OrderQuery {
-
     public static ListenerRegistration orderUpdateListener;
+    private GetOrderDetailsListener listener;
 
-    public static void onOrderUpdateListener( String deliveryID, final GetOrderDetailsListener listener ){
+    public OrderQuery(GetOrderDetailsListener listener) {
+        this.listener = listener;
+    }
+
+
+    public void onOrderUpdateListener( String deliveryID ){
         orderUpdateListener = firebaseFirestore.collection( "DELIVERY" )
-                .document( "CITY_CODE" ).collection( "DELIVERY" )
+                .document( StaticValues.USER_ACCOUNT.getUser_city_code() ).collection( "DELIVERY" )
                 .document( deliveryID ).addSnapshotListener( (value, error) -> {
 
                     Map<String, Object> resultMap = new HashMap <>();
@@ -42,7 +53,20 @@ public class OrderQuery {
 
     }
 
-    public static void updateOrderOnShop( final GetOrderDetailsListener listener,
+    public void getOtpQuery(String deliveryID){
+        firebaseFirestore.collection( "DELIVERY" )
+                .document( "CITY_CODE" ).collection( "DELIVERY" )
+                .document( deliveryID )
+                .get().addOnCompleteListener( task -> {
+                    if (task.isSuccessful()){
+                        listener.onAcceptedOrder( task.getResult().get( "verify_otp" ).toString() );
+                    }else{
+                        listener.onAcceptedOrder( "Failed" );
+                    }
+                } );
+    }
+
+    public void updateOrderOnShop( final GetOrderDetailsListener listener,
                                           String shopID, String orderID, Map<String, Object> updateMap, int updateRequest ){
 
 //        updateMap.put( "delivery_date", "sfds" );
@@ -66,16 +90,20 @@ public class OrderQuery {
 
     }
 
+    public void loadOrderData( String shopID, String orderID ){
+
+    }
+
     public static class UpdateOrderStatus implements Runnable{
 
         private Map<String, Object> updateMap;
-        private String orderID;
+        private String deliveryID;
         private String CityCode;
         private GetOrderDetailsListener listener;
 
-        public UpdateOrderStatus(Map <String, Object> updateMap, String orderID, String CityCode, GetOrderDetailsListener listener) {
+        public UpdateOrderStatus(Map <String, Object> updateMap, String deliveryID, String CityCode, GetOrderDetailsListener listener) {
             this.updateMap = updateMap;
-            this.orderID = orderID;
+            this.deliveryID = deliveryID;
             this.CityCode = CityCode;
             this.listener = listener;
         }
@@ -84,7 +112,7 @@ public class OrderQuery {
         public void run() {
             firebaseFirestore.collection( "DELIVERY" )
                     .document( CityCode ).collection( "DELIVERY" )
-                    .document( orderID )
+                    .document( deliveryID )
                     .update( updateMap )
                     .addOnCompleteListener( task -> {
                         if (task.isSuccessful()){
@@ -99,7 +127,6 @@ public class OrderQuery {
 
 
     }
-
 
 
 }

@@ -1,5 +1,7 @@
 package ean.ecom.shipping.main.order;
 
+import java.util.List;
+
 /**
  * Created by Shailendra (WackyCodes) on 27/09/2020 11:05
  * ( To Know more, Click : https://linktr.ee/wackycodes )
@@ -45,7 +47,9 @@ public class OrderListModel {
     private String outForDeliveryOTP; // new
 
     //  Order Item List...
-//    private List<OrderProductItemModel> orderProductItemsList;
+    private List<OrderProductsModel> orderProductItemsList;
+
+
 
     public OrderListModel() {
     }
@@ -248,6 +252,13 @@ public class OrderListModel {
 
     public void setOutForDeliveryOTP(String outForDeliveryOTP) {
         this.outForDeliveryOTP = outForDeliveryOTP;
+    }
+    public List <OrderProductsModel> getOrderProductItemsList() {
+        return orderProductItemsList;
+    }
+
+    public void setOrderProductItemsList(List <OrderProductsModel> orderProductItemsList) {
+        this.orderProductItemsList = orderProductItemsList;
     }
 
     /*

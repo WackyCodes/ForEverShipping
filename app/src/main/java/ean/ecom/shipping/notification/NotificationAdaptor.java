@@ -93,7 +93,7 @@ public class NotificationAdaptor extends RecyclerView.Adapter<NotificationAdapto
             itemView.setOnClickListener( v-> {
                 // on Order Click...
                 onNotificationUpdater.onNotificationClick(
-                        new OrderViewFragment( VIEW_ORDER_FROM_NOTIFICATION, orderModel.getOrderID(), orderModel.getShopID(), orderModel.getDeliveryID() ) );
+                        new OrderViewFragment( orderModel.getOrderID(), orderModel.getShopID(), orderModel.getDeliveryID() ) );
             } );
 
             tvGetShopDirection.setOnClickListener( v -> {
