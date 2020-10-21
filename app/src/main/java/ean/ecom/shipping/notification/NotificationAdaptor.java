@@ -10,15 +10,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.firestore.GeoPoint;
 
-import java.util.List;
-
 import ean.ecom.shipping.R;
 import ean.ecom.shipping.main.order.CurrentOrderListModel;
 import ean.ecom.shipping.main.order.OrderViewFragment;
 
 import static ean.ecom.shipping.database.DBQuery.orderNotificationList;
 import static ean.ecom.shipping.other.StaticValues.NOTIFICATION_TYPE_ORDERS;
-import static ean.ecom.shipping.other.StaticValues.VIEW_ORDER_FROM_NOTIFICATION;
 
 /**
  * Created by Shailendra (WackyCodes) on 15/10/2020 17:11
@@ -86,22 +83,22 @@ public class NotificationAdaptor extends RecyclerView.Adapter<NotificationAdapto
 
             CurrentOrderListModel orderModel = orderNotificationList.get( position );
 
-            tvShopName.setText( "New Order from " + orderModel.getShopName() );
-            tvShopAddress.setText( orderModel.getShopAddress() );
-            tvShippingAddress.setText( orderModel.getShippingAddress() );
+            tvShopName.setText( "New Order from " + orderModel.getShop_name() );
+            tvShopAddress.setText( orderModel.getShop_address() );
+            tvShippingAddress.setText( orderModel.getShipping_address() );
 
             itemView.setOnClickListener( v-> {
                 // on Order Click...
                 onNotificationUpdater.onNotificationClick(
-                        new OrderViewFragment( orderModel.getOrderID(), orderModel.getShopID(), orderModel.getDeliveryID() ) );
+                        new OrderViewFragment( orderModel,  null ) );
             } );
 
             tvGetShopDirection.setOnClickListener( v -> {
-                setTvGetShopDirection(orderModel.getShopGeoPoint(), orderModel.getShopName());
+                setTvGetShopDirection(orderModel.getShop_geo_point(), orderModel.getShop_name());
             });
 
             tvGetShippingDirection.setOnClickListener( v -> {
-                setTvGetShippingDirection( orderModel.getShippingGeoPoint(), orderModel.getShippingAddress() );
+                setTvGetShippingDirection( orderModel.getShipping_geo_point(), orderModel.getShipping_address() );
             } );
 
         }

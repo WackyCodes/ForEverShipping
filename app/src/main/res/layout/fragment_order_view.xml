@@ -90,6 +90,8 @@
                             android:elevation="2dp"
                             android:background="@drawable/back_rectangle_4dp_layout"
                             android:hint="Enter OTP"
+                            android:maxLength="4"
+                            android:inputType="number"
                             android:paddingLeft="10dp"
                             android:paddingRight="10dp"
                             android:textAlignment="center"
@@ -122,6 +124,22 @@
                         android:background="@drawable/back_rectangle_4dp_layout"
                         android:backgroundTint="@color/colorPrimary"
                         android:padding="4dp"/>
+
+                    <TextView
+                        android:visibility="gone"
+                        android:id="@+id/order_success_text"
+                        android:layout_weight="1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:drawableLeft="@drawable/ic_baseline_check_circle_24"
+                        android:drawableTint="@color/colorGreen"
+                        android:drawablePadding="6dp"
+                        android:textAlignment="gravity"
+                        android:gravity="center_vertical"
+                        android:layout_margin="8dp"
+                        android:text="Success"
+                        android:textColor="@color/colorGreen"
+                        />
 
                 </LinearLayout>
 
@@ -184,6 +202,7 @@
                         app:layout_constraintTop_toBottomOf="@+id/shop_id_text" />
 
                     <LinearLayout
+                        android:visibility="invisible"
                         android:id="@+id/get_shop_direction_layout"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -259,6 +278,7 @@
                         app:layout_constraintTop_toBottomOf="@+id/shop_address_sample" />
 
                     <LinearLayout
+                        android:visibility="invisible"
                         android:id="@+id/get_shipping_direction_layout"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -304,6 +324,7 @@
         </ScrollView>
 
         <Button
+            android:visibility="gone"
             android:id="@+id/order_complete_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

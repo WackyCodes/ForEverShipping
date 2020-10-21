@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -22,7 +21,6 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -42,18 +40,13 @@ import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
 
 
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 import ean.ecom.shipping.R;
 import ean.ecom.shipping.database.DBQuery;
-import ean.ecom.shipping.main.map.GetMapData;
 import ean.ecom.shipping.main.map.TaskLoadedCallback;
 import ean.ecom.shipping.main.order.CurrentOrderUpdateListener;
-import ean.ecom.shipping.other.StaticMethods;
 
 import static ean.ecom.shipping.database.DBQuery.currentOrderListModelList;
 import static ean.ecom.shipping.other.StaticValues.MAPVIEW_BUNDLE_KEY;
@@ -322,9 +315,9 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
     public void onCurrentOrderUpdates( String deliveryID, String updateStatus ) {
         if (currentOrderListModelList.size() != 0){
             for (int size = 0; size < currentOrderListModelList.size(); size ++){
-                if ( deliveryID.equals( currentOrderListModelList.get( size ).getDeliveryID() )){
+                if ( deliveryID.equals( currentOrderListModelList.get( size ).getDelivery_id() )){
                     // Changes...
-                    currentOrderListModelList.get( size ).setOrderStatus( updateStatus );
+                    currentOrderListModelList.get( size ).setDelivery_status( updateStatus );
                     shippingOrderAdaptor.notifyDataSetChanged();
                     break;
                 }

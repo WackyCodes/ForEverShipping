@@ -3,7 +3,6 @@ package ean.ecom.shipping.main;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -11,8 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -89,22 +86,22 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
 
         private void setData( final CurrentOrderListModel model, int position){
 
-            orderText.setText( "Order ID: " + model.getOrderID() );
-            shopAddressText.setText( model.getShopAddress() );
-            shippingAddressText.setText( model.getShippingAddress() );
+            orderText.setText( "Order ID: " + model.getOrder_id() );
+            shopAddressText.setText( model.getShop_address() );
+            shippingAddressText.setText( model.getShipping_address() );
 
 
             // Set Visibility of Shop Direction Button...
-            if (model.getOrderStatus() != null && model.getOrderStatus().toUpperCase().equals( "PROCESS" )){
+            if (model.getDelivery_status() != null && model.getDelivery_status().toUpperCase().equals( "PROCESS" )){
                 getShopDirection.setVisibility( View.VISIBLE );
                 // If Order Not picked Yet..! ( orderStatus == ACCEPTED )
-                onSetMarker( mapActionFragment, model.getShopGeoPoint(), model.getShopAddress() );
+                onSetMarker( mapActionFragment, model.getShop_geo_point(), model.getShop_address() );
             }
             else{
                 getShopDirection.setVisibility( View.INVISIBLE );
                 // If Order picked and out for delivery..! ( orderStatus == PICKED )
-                if (model.getShippingGeoPoint() != null){
-                    onSetMarker( mapActionFragment, model.getShippingGeoPoint(), model.getShippingAddress() );
+                if (model.getShipping_geo_point() != null){
+                    onSetMarker( mapActionFragment, model.getShipping_geo_point(), model.getShipping_address() );
                 }
             }
 
@@ -112,7 +109,7 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
             getShopDirection.setOnClickListener( new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    onDrawingPathLine( mapActionFragment, StaticValues.MY_GEO_POINTS, model.getShopGeoPoint() );
+                    onDrawingPathLine( mapActionFragment, StaticValues.MY_GEO_POINTS, model.getShop_geo_point() );
                 }
             } );
 
@@ -144,14 +141,14 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
                 Show the path between Shop and Shipping address...
                 and if any Order has been Picked then show the path between user Location and Shipping Location...!
              */
-            if (model.getOrderStatus().toUpperCase().equals( "PROCESS" )){
-                onDrawingPathLine( mapActionFragment, model.getShopGeoPoint(), model.getShippingGeoPoint() );
+            if (model.getDelivery_status().toUpperCase().equals( "PROCESS" )){
+                onDrawingPathLine( mapActionFragment, model.getShop_geo_point(), model.getShipping_geo_point() );
 
-            }else if (model.getOrderStatus().toUpperCase().equals( "PICKED" )){
-                onDrawingPathLine( mapActionFragment, StaticValues.MY_GEO_POINTS, model.getShippingGeoPoint() );
+            }else if (model.getDelivery_status().toUpperCase().equals( "PICKED" )){
+                onDrawingPathLine( mapActionFragment, StaticValues.MY_GEO_POINTS, model.getShipping_geo_point() );
 
             }else{
-                onDrawingPathLine( mapActionFragment, new GeoPoint( 23.29900000,76.00023100 ), model.getShippingGeoPoint() );
+                onDrawingPathLine( mapActionFragment, new GeoPoint( 23.29900000,76.00023100 ), model.getShipping_geo_point() );
             }
         }
 

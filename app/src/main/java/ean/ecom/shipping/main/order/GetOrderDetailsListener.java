@@ -12,15 +12,21 @@ public interface GetOrderDetailsListener {
 
     void onReceiveFailed();
 
-    void showDialog();
-    void dismissDialog();
-
     void onAcceptedOrder(String otp);
+    void onCustomerOTPNotVerified(boolean isFailed);
 
     void onUpdateStatusFailed();
 
     void onUpdateDeliveryStatus( String updateResultID, Map<String, Object> result );
 
+    void onRequestToCancelOrder();
+    void onCancelledOrder();
+
+    void onOrderCompleteNextStep(int step);
+    void onOrderCompleteFailed(int failedStep);
+
+    void showDialog();
+    void dismissDialog();
     void showToast( String msg );
 
 }

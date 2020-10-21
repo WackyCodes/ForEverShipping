@@ -3,18 +3,14 @@ package ean.ecom.shipping.database;
 import android.view.View;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -31,7 +27,6 @@ import ean.ecom.shipping.main.order.CurrentOrderListModel;
 import ean.ecom.shipping.notification.NotificationModel;
 import ean.ecom.shipping.other.StaticValues;
 
-import static ean.ecom.shipping.main.MainMapsFragment.shippingOrderAdaptor;
 import static ean.ecom.shipping.notification.NotificationFragment.orderNotificationAdaptor;
 
 /**
@@ -102,11 +97,11 @@ public class DBQuery {
                             currentOrderListModel = new CurrentOrderListModel();
 
                             if (documentSnapshot.get( "shipping_geo_point" ) != null) {
-                                currentOrderListModel.setShippingGeoPoint( documentSnapshot.getGeoPoint( "shipping_geo_point" ) );
+                                currentOrderListModel.setShipping_geo_point( documentSnapshot.getGeoPoint( "shipping_geo_point" ) );
                                 StaticValues.MY_GEO_POINTS = documentSnapshot.getGeoPoint( "shipping_geo_point" );
                             }
                             if (documentSnapshot.get( "shop_geo_point" ) != null) {
-                                currentOrderListModel.setShopGeoPoint( documentSnapshot.getGeoPoint( "shop_geo_point" ) );
+                                currentOrderListModel.setShop_geo_point( documentSnapshot.getGeoPoint( "shop_geo_point" ) );
                             }
 
                             String delivery_id = documentSnapshot.getId();
@@ -124,14 +119,14 @@ public class DBQuery {
                             String shipping_address = documentSnapshot.get( "shipping_address" ).toString();
                             String shop_address = documentSnapshot.get( "shop_address" ).toString();
 
-                            currentOrderListModel.setDeliveryID( delivery_id );
-                            currentOrderListModel.setShopID( shop_id );
-                            currentOrderListModel.setShopName( shop_name );
-                            currentOrderListModel.setOrderID( order_id );
-                            currentOrderListModel.setOrderStatus( delivery_status );
-                            currentOrderListModel.setOrderTime( order_time_Str );
-                            currentOrderListModel.setShippingAddress( shipping_address );
-                            currentOrderListModel.setShopAddress( shop_address );
+                            currentOrderListModel.setDelivery_id( delivery_id );
+                            currentOrderListModel.setShop_id( shop_id );
+                            currentOrderListModel.setShop_name( shop_name );
+                            currentOrderListModel.setOrder_id( order_id );
+                            currentOrderListModel.setDelivery_status( delivery_status );
+                            currentOrderListModel.setOrder_time( order_time_Str );
+                            currentOrderListModel.setShipping_address( shipping_address );
+                            currentOrderListModel.setShop_address( shop_address );
 
                             // Add Model in the list...
                             orderNotificationList.add( currentOrderListModel );

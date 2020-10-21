@@ -3,10 +3,12 @@ package ean.ecom.shipping.main.order;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,9 +29,20 @@ import java.util.Map;
 
 import ean.ecom.shipping.R;
 import ean.ecom.shipping.database.OrderQuery;
+import ean.ecom.shipping.other.DialogsClass;
+import ean.ecom.shipping.other.StaticMethods;
 
+import static ean.ecom.shipping.database.DBQuery.currentOrderListModelList;
 import static ean.ecom.shipping.database.DBQuery.currentUser;
 import static ean.ecom.shipping.database.DBQuery.firebaseFirestore;
+import static ean.ecom.shipping.other.StaticValues.ORDER_ACCEPTED;
+import static ean.ecom.shipping.other.StaticValues.ORDER_CANCELLED;
+import static ean.ecom.shipping.other.StaticValues.ORDER_CODE_ACCEPTED;
+import static ean.ecom.shipping.other.StaticValues.ORDER_CODE_CANCEL;
+import static ean.ecom.shipping.other.StaticValues.ORDER_CODE_COMPLETE;
+import static ean.ecom.shipping.other.StaticValues.ORDER_PICKED;
+import static ean.ecom.shipping.other.StaticValues.ORDER_PROCESS;
+import static ean.ecom.shipping.other.StaticValues.ORDER_SUCCESS;
 import static ean.ecom.shipping.other.StaticValues.USER_ACCOUNT;
 import static ean.ecom.shipping.other.StaticValues.VIEW_ORDER_FROM_COMPLETE_ORDERS;
 import static ean.ecom.shipping.other.StaticValues.VIEW_ORDER_FROM_CURRENT_ORDERS;
@@ -37,15 +51,21 @@ import static ean.ecom.shipping.other.StaticValues.VIEW_ORDER_PICKED_ORDERS;
 
 public class OrderViewFragment extends Fragment implements GetOrderDetailsListener {
 
-    public OrderViewFragment( String orderID, String shopID, String deliveryID) {
+    public OrderViewFragment(CurrentOrderListModel currentOrderListModel, @Nullable ListenerRegistration orderUpdateListenerR ) {
         // Required empty public constructor
-        this.deliveryID = deliveryID;
-        this.orderID = orderID;
-        this.shopID = shopID;
+        this.currentOrderListModel = currentOrderListModel;
+        this.deliveryID = currentOrderListModel.getDelivery_id();
+        this.orderID = currentOrderListModel.getOrder_id();
+        this.shopID = currentOrderListModel.getShop_id();
+        this.shopName = currentOrderListModel.getShop_name();
+        this.orderUpdateListenerR = orderUpdateListenerR;
     }
+    private CurrentOrderListModel currentOrderListModel;
 
+    private ListenerRegistration orderUpdateListenerR;
     private String orderID;
     private String shopID;
+    private String shopName;
     private String deliveryID;
     private OrderQuery orderQuery;
     private OrderListModel orderModel;
@@ -73,6 +93,8 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
     private Button buttonCompleteDelivery; // order_complete_button
     private Button buttonCancelDelivery; // order_cancel_button
     private TextView acceptDeliveryBtn; /// accept_delivery_text
+
+    private TextView tvSuccessDelivered; /// order_success_text
 
     private ProgressDialog dialog;
     private Thread acceptOrderThread;
@@ -107,6 +129,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
         buttonCompleteDelivery = view.findViewById( R.id.order_complete_button );
         buttonCancelDelivery = view.findViewById( R.id.order_cancel_button );
         acceptDeliveryBtn = view.findViewById( R.id.accept_delivery_text );
+        tvSuccessDelivered = view.findViewById( R.id.order_success_text );
 
         // set Default View....
         Thread loadDataThread = new Thread(new LoadOrderData( orderID, shopID, USER_ACCOUNT.getUser_city_code(), this ));
@@ -119,9 +142,50 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
     }
 
     private void setOnButtonClick(View view){
+        // accept order button clicked
         acceptDeliveryBtn.setOnClickListener( v->{
             acceptDeliveryBtn.setEnabled( false );
-            onAcceptButtonClick();
+            showDialog();
+            Map<String, Object> updateMap = new HashMap();
+            updateMap.put( "delivery_status", ORDER_PROCESS );
+            updateMap.put( "delivery_by_uid", USER_ACCOUNT.getUser_mobile() );
+            acceptOrderThread = new Thread( new OrderQuery.UpdateOrderStatus(updateMap, deliveryID, USER_ACCOUNT.getUser_city_code(), ORDER_CODE_ACCEPTED, this) );
+            acceptOrderThread.start();
+        } );
+        // Cancel Order Button Clicked...
+        buttonCancelDelivery.setOnClickListener( v->{
+            buttonCancelDelivery.setEnabled( false );
+            showDialog();
+            Map<String, Object> updateMap = new HashMap();
+            updateMap.put( "delivery_status", ORDER_ACCEPTED );
+            updateMap.put( "delivery_by_uid", null );
+            acceptOrderThread = new Thread( new OrderQuery.UpdateOrderStatus(updateMap, deliveryID, USER_ACCOUNT.getUser_city_code(), ORDER_CODE_CANCEL, this) );
+            acceptOrderThread.start();
+        } );
+        // on Complete Order Button Clicked...
+        buttonCompleteDelivery.setOnClickListener( v->{
+            // check...
+            if (TextUtils.isEmpty( etCustomerOtp.getText().toString() )){
+                etCustomerOtp.setError( "Required!" );
+                return;
+            }
+            if (etCustomerOtp.getText().toString().length() < 4){
+                etCustomerOtp.setError( "Invalid OTP!" );
+                return;
+            }
+            // call method...
+            showDialog();
+            buttonCompleteDelivery.setEnabled( false );
+            orderQuery.setCustomerOTPVerify( this, shopID, orderID, etCustomerOtp.getText().toString().trim() );
+        } );
+
+        // Direction : Shop Direction button clicked...
+        getShopDirectionBtn.setOnClickListener( v->{
+            showToast( "Not found!" ); // TODO : Direction...
+        } );
+        // Direction : Customer Direction button clicked...
+        getShippingDirectionBtn.setOnClickListener( v->{
+            showToast( "Not found!" ); // TODO: Direction...
         } );
     }
 
@@ -130,8 +194,6 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
         String dStatus = orderModel.getDeliveryStatus();
         if (dStatus.equals( "ACCEPTED" )){
             setDefaultLayout( VIEW_ORDER_FROM_NOTIFICATION );
-            // Add Listener...
-            orderQuery.onOrderUpdateListener( deliveryID );
 
         }else if( dStatus.equals( "PICKED" )){
             setDefaultLayout( VIEW_ORDER_PICKED_ORDERS );
@@ -165,6 +227,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
                 buttonCancelDelivery.setVisibility( View.GONE );
                 acceptDeliveryBtn.setVisibility( View.VISIBLE );
                 layoutOTP.setVisibility( View.GONE );
+                tvSuccessDelivered.setVisibility( View.GONE );
                 break;
             case VIEW_ORDER_FROM_CURRENT_ORDERS:
                 buttonCompleteDelivery.setVisibility( View.GONE );
@@ -173,12 +236,14 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
                 layoutOTP.setVisibility( View.VISIBLE );
                 etCustomerOtp.setVisibility( View.GONE );
                 tvShopOtp.setVisibility( View.VISIBLE );
+                tvSuccessDelivered.setVisibility( View.GONE );
                 break;
             case VIEW_ORDER_FROM_COMPLETE_ORDERS:
                 buttonCompleteDelivery.setVisibility( View.GONE );
                 buttonCancelDelivery.setVisibility( View.GONE );
                 acceptDeliveryBtn.setVisibility( View.GONE );
                 layoutOTP.setVisibility( View.GONE );
+                tvSuccessDelivered.setVisibility( View.VISIBLE );
                 getShippingDirectionBtn.setVisibility( View.INVISIBLE );
                 break;
             case VIEW_ORDER_PICKED_ORDERS:
@@ -188,19 +253,11 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
                 layoutOTP.setVisibility( View.VISIBLE );
                 tvShopOtp.setVisibility( View.GONE );
                 etCustomerOtp.setVisibility( View.VISIBLE );
+                tvSuccessDelivered.setVisibility( View.GONE );
                 break;
             default:
                 break;
         }
-    }
-
-    private void onAcceptButtonClick(){
-        showDialog();
-        Map<String, Object> updateMap = new HashMap();
-        updateMap.put( "delivery_status", "PROCESS" );
-        updateMap.put( "delivery_by_uid", currentUser.getUid() );
-        acceptOrderThread = new Thread( new OrderQuery.UpdateOrderStatus(updateMap, deliveryID, USER_ACCOUNT.getUser_city_code(), this) );
-        acceptOrderThread.start();
     }
 
     @Override
@@ -208,12 +265,16 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
         orderModel = orderListModel;
 
         tvOrderID.setText( orderModel.getOrderID() );
-        tvShopName.setText( orderModel.getShippingName() );
+        tvShopName.setText( shopName );
         tvShopId.setText( shopID );
         tvShopAddress.setText( orderModel.getShippingAddress() );
         // Shipping...
         tvShippingAddress.setText( orderModel.getShippingAddress() );
 
+        /**  Add Listener... Only Call when Order not success! */
+        if (! orderModel.getDeliveryStatus().equals( ORDER_SUCCESS )){
+            orderQuery.onOrderUpdateListener( orderUpdateListenerR, this, deliveryID );
+        }
         // Set Other Data....
         setOrderData();
     }
@@ -226,53 +287,69 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
 
     @Override
     public void showDialog() {
-        dialog.show();
+        if (!dialog.isShowing()){
+            dialog.show();
+        }
     }
 
     @Override
     public void dismissDialog() {
-        dialog.dismiss();
+        if (dialog.isShowing()){
+            dialog.dismiss();
+        }
     }
 
     @Override
     public void onUpdateStatusFailed() {
         dismissDialog();
+        showToast( "Failed! Check your internet connection and try again!" );
         if (acceptDeliveryBtn.getVisibility() == View.VISIBLE)
             acceptDeliveryBtn.setEnabled( true );
+        if (buttonCancelDelivery.getVisibility() == View.VISIBLE)
+            buttonCancelDelivery.setEnabled( true );
     }
 
     @Override
     public void onUpdateDeliveryStatus(String updateResultID, Map <String, Object> result) {
         // when user click on Accept Btn...
-        if (updateResultID.toUpperCase().equals( "PROCESS" )){
+        if (updateResultID.toUpperCase().equals( ORDER_PROCESS )){
             acceptDeliveryBtn.setVisibility( View.GONE );
             if (acceptOrderThread != null && acceptOrderThread.isAlive()){
                 acceptOrderThread.suspend();
             }
             //  Check whether Order accepted by you or not?
-            String resultUID = result.get( "UID" ).toString();
-            if(resultUID.equals( currentUser.getUid() )){
+//            String resultUID = result.get( "UID" ).toString();
+            if(result.get( "delivery_by_uid" ).toString().equals( USER_ACCOUNT.getUser_mobile() )){
                 // Update Order in the Product...
                 Map<String, Object> updateMap = new HashMap();
-                updateMap.put( "delivery_by_uid", currentUser.getUid() );
+                updateMap.put( "delivery_by_uid", USER_ACCOUNT.getUser_mobile() );
                 updateMap.put( "delivery_by_name", USER_ACCOUNT.getUser_name() );
                 updateMap.put( "delivery_by_mobile", USER_ACCOUNT.getUser_mobile() );
                 updateMap.put( "delivery_id", deliveryID );
                 updateMap.put( "delivery_vehicle_no", USER_ACCOUNT.getUser_vehicle_number() );
-//                updateMap.put( "delivery_status", "PROCESS" );
+                //  updateMap.put( "delivery_status", ORDER_PROCESS );
+                // Update Order In the Shop Order List...
                 orderQuery.updateOrderOnShop( this, shopID, orderID, updateMap, 1);
 
-                // Set UI
-                onAcceptedOrder( result.get( "verify_otp" ).toString() );
+                // add Model into Current Order List...
+                orderQuery.addOrderInCurrentDelivery( this, currentOrderListModel, deliveryID, result.get( "verify_otp" ).toString(), false );
+
             }
             else{
+                dismissDialog();
+                acceptDeliveryBtn.setVisibility( View.INVISIBLE );
                 // Show Alert Message...
-                // TODO: Alert Message....
+//                showToast( "Not Matched" );
+                DialogsClass.alertDialog( getContext(), "Order Accepted by Other!", "Sorry! Order has been assign to someone else..! Check other orders" )
+                .setPositiveButton( "OK", (dialog, which) -> {
+                    dialog.dismiss();
+                    getActivity().finish();
+                } ).show();
             }
 
         } else
             // when Shop Keeper update : OUT_FOR_DELIVERY...
-        if(updateResultID.toUpperCase().equals( "PICKED" )){
+        if(updateResultID.toUpperCase().equals( ORDER_PICKED )){
             buttonCompleteDelivery.setVisibility( View.VISIBLE );
             buttonCancelDelivery.setVisibility( View.GONE );
             acceptDeliveryBtn.setVisibility( View.GONE );
@@ -283,17 +360,110 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
             tvOtpTitle.setText( "Enter OTP" );
             tvOtpGuide.setText( "Ask OTP from user." );
         }else
-            // when ANY Delivery has been success | click on Complete Btn...
-        if(updateResultID.toUpperCase().equals( "SUCCESS" )){
-
-        }else
             // if any Customer Cancel Order ...
-        if(updateResultID.toUpperCase().equals( "CANCELLED" )){
+        if(updateResultID.toUpperCase().equals( ORDER_CANCELLED )) {
+            // cancel.... by Customer... TODO : Set Pushup Notification to Delivery Boy...
+            Map<String, Object> updateMap = new HashMap();
+            updateMap.put( "delivery_by_uid", null );
+            updateMap.put( "delivery_by_name", null );
+            updateMap.put( "delivery_by_mobile", null );
+            updateMap.put( "delivery_vehicle_no", null );
+//                updateMap.put( "delivery_status", "PROCESS" );
+            orderQuery.updateOrderOnShop( this, shopID, orderID, updateMap, 3);
+        }
 
-        }else
-            // when user click on CANCEL Btn...
-        if(updateResultID.toUpperCase().equals( "ACCEPTED" )) {
+    }
 
+    @Override
+    public void onRequestToCancelOrder() {
+        Map<String, Object> updateMap = new HashMap();
+        updateMap.put( "delivery_by_uid", null );
+        updateMap.put( "delivery_by_name", null );
+        updateMap.put( "delivery_by_mobile", null );
+        updateMap.put( "delivery_vehicle_no", null );
+        orderQuery.updateOrderOnShop( this, shopID, orderID, updateMap, 3);
+    }
+
+    @Override
+    public void onCancelledOrder() {
+        dismissDialog();
+        getActivity().finish();
+    }
+
+    // Set Order Complete Steps...
+    @Override
+    public void onOrderCompleteNextStep(int step){
+        switch (step){
+            case 0: // successfully Verified OTP...
+                // Request to Update in shop Order List...
+                Map<String, Object> updateMap = new HashMap();
+                updateMap.put( "delivery_status", ORDER_SUCCESS );
+                updateMap.put( "delivery_timestamp", StaticMethods.getCrrTimestamp() );
+                orderQuery.updateOrderOnShop( this, shopID, orderID, updateMap, 2);
+                break;
+            case 1: // successfully Update in shop Order List...
+                //  Request to Update into My Delivery document...
+                currentOrderListModel.setDelivery_status( ORDER_SUCCESS );
+                orderQuery.addOrderInCurrentDelivery( this, currentOrderListModel, deliveryID, null, true );
+                break;
+            case 2: // Success Update in Delivery List...
+                // Request to Delete Delivery Document...
+                orderQuery.deleteDeliveryIdQuery(this, deliveryID, false);
+                break;
+            case 3: // Success delete temp Delivery Document...
+                dismissDialog();
+                // TODO: Send to User Success Notification...
+
+                // set UI...
+                setDefaultLayout( VIEW_ORDER_FROM_COMPLETE_ORDERS );
+                int crrListIndex = getIndexOfCurrentListModel();
+                if (crrListIndex >= 0){
+                    currentOrderListModelList.get( crrListIndex ).setDelivery_status( ORDER_SUCCESS );
+                }else{
+                    currentOrderListModelList.add( currentOrderListModel );
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    @Override
+    public void onOrderCompleteFailed(int failedStep){
+        switch (failedStep){
+            case 1: // Failed to update at shop Order list...
+                showToast( "Please Check your Internet Connection !" );
+                // Retry...Request to Update in shop Order List...
+                Map<String, Object> updateMap = new HashMap();
+                updateMap.put( "delivery_status", ORDER_SUCCESS );
+                updateMap.put( "delivery_timestamp", StaticMethods.getCrrTimestamp() );
+                orderQuery.updateOrderOnShop( this, shopID, orderID, updateMap, 2);
+                break;
+            case 2: // Failed to update at Delivery list...
+                showToast( "your Internet Connection is very slow... !" );
+                // retry...Request to Update into My Delivery document...
+                orderModel.setDeliveryStatus( ORDER_SUCCESS );
+                currentOrderListModel.setDelivery_status( ORDER_SUCCESS );
+                orderQuery.addOrderInCurrentDelivery( this, currentOrderListModel, deliveryID, null, true );
+                break;
+            case 3: // Failed to delete temp Delivery Document..
+                dismissDialog();
+                // next step...
+                // TODO : Send to User Success Notification...
+
+                // set UI...
+                setDefaultLayout( VIEW_ORDER_FROM_COMPLETE_ORDERS );
+                int crrListIndex = getIndexOfCurrentListModel();
+                if (crrListIndex >= 0){
+                    currentOrderListModelList.get( crrListIndex ).setDelivery_status( ORDER_SUCCESS );
+                }else{
+                    currentOrderListModelList.add( currentOrderListModel );
+                }
+                // Request to Delete Delivery Document...
+                orderQuery.deleteDeliveryIdQuery(this, deliveryID, true);
+            case 0: // Failed to Verify OTP...
+                // Called onCustomerOTPNotVerified() method from...
+            default:
+                break;
         }
     }
 
@@ -315,6 +485,18 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
     }
 
     @Override
+    public void onCustomerOTPNotVerified(boolean isFailed) {
+        dismissDialog();
+        if (isFailed){
+           showToast( "Verification Failed! Please Check your internet Connection and try again!" );
+        }else{
+            showToast( "OTP Not matched! Ask correct OTP from customer." );
+            etCustomerOtp.setError( "Not Matched!" );
+        }
+        buttonCompleteDelivery.setEnabled( true );
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         orderID = null;
@@ -323,6 +505,16 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
     @Override
     public void showToast(String msg) {
         Toast.makeText( getContext(), msg, Toast.LENGTH_SHORT ).show();
+    }
+
+    private int getIndexOfCurrentListModel(){
+        currentOrderListModelList.add( currentOrderListModel );
+        for (CurrentOrderListModel model : currentOrderListModelList){
+            if (currentOrderListModel.getOrder_id().equals( model.getOrder_id() )){
+                return currentOrderListModelList.indexOf( model );
+            }
+        }
+        return -1;
     }
 
     /**  Order Status

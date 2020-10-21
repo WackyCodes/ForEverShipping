@@ -2,6 +2,9 @@ package ean.ecom.shipping.main.order;
 
 import com.google.firebase.firestore.GeoPoint;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by Shailendra (WackyCodes) on 26/09/2020 17:12
  * ( To Know more, Click : https://linktr.ee/wackycodes )
@@ -21,120 +24,138 @@ public class CurrentOrderListModel {
      *
      */
 
-    private String orderID;
-    private String deliveryID;
-    private String shopID;
-    private String shopName;
-    private String shopAddress;
-    private String shippingAddress;
-    private String orderTime;
-    private String orderStatus;
+    private String order_id;
+    private String delivery_id;
+    private String shop_id;
+    private String shop_name;
+    private String shop_address;
+    private String shipping_address;
+    private String order_time;
+    private String delivery_status;
 
-    private GeoPoint shopGeoPoint;
-    private GeoPoint shippingGeoPoint;
-    private GeoPoint myGeoPoint;
+    private GeoPoint shop_geo_point;
+    private GeoPoint shipping_geo_point;
+    private GeoPoint my_geo_point;
 
     public CurrentOrderListModel() {
     }
 
-    public CurrentOrderListModel(String orderID, String deliveryID, String shopID, String shopAddress, String shippingAddress
-            , String orderTime, GeoPoint shopGeoPoint, GeoPoint shippingGeoPoint, GeoPoint myGeoPoint) {
-        this.orderID = orderID;
-        this.deliveryID = deliveryID;
-        this.shopID = shopID;
-        this.shopAddress = shopAddress;
-        this.shippingAddress = shippingAddress;
-        this.orderTime = orderTime;
-        this.shopGeoPoint = shopGeoPoint;
-        this.shippingGeoPoint = shippingGeoPoint;
-        this.myGeoPoint = myGeoPoint;
+    public CurrentOrderListModel(String order_id, String delivery_id, String shop_id, String shop_address, String shipping_address
+            , String order_time, GeoPoint shop_geo_point, GeoPoint shipping_geo_point, GeoPoint my_geo_point) {
+        this.order_id = order_id;
+        this.delivery_id = delivery_id;
+        this.shop_id = shop_id;
+        this.shop_address = shop_address;
+        this.shipping_address = shipping_address;
+        this.order_time = order_time;
+        this.shop_geo_point = shop_geo_point;
+        this.shipping_geo_point = shipping_geo_point;
+        this.my_geo_point = my_geo_point;
     }
 
-    public String getOrderID() {
-        return orderID;
+    public String getOrder_id() {
+        return order_id;
     }
 
-    public void setOrderID(String orderID) {
-        this.orderID = orderID;
+    public void setOrder_id(String order_id) {
+        this.order_id = order_id;
     }
 
-    public String getDeliveryID() {
-        return deliveryID;
+    public String getDelivery_id() {
+        return delivery_id;
     }
 
-    public void setDeliveryID(String deliveryID) {
-        this.deliveryID = deliveryID;
+    public void setDelivery_id(String delivery_id) {
+        this.delivery_id = delivery_id;
     }
 
-    public String getShopAddress() {
-        return shopAddress;
+    public String getShop_address() {
+        return shop_address;
     }
 
-    public void setShopAddress(String shopAddress) {
-        this.shopAddress = shopAddress;
+    public void setShop_address(String shop_address) {
+        this.shop_address = shop_address;
     }
 
-    public String getShippingAddress() {
-        return shippingAddress;
+    public String getShipping_address() {
+        return shipping_address;
     }
 
-    public void setShippingAddress(String shippingAddress) {
-        this.shippingAddress = shippingAddress;
+    public void setShipping_address(String shipping_address) {
+        this.shipping_address = shipping_address;
     }
 
-    public String getShopID() {
-        return shopID;
+    public String getShop_id() {
+        return shop_id;
     }
 
-    public void setShopID(String shopID) {
-        this.shopID = shopID;
+    public void setShop_id(String shop_id) {
+        this.shop_id = shop_id;
     }
 
-    public String getShopName() {
-        return shopName;
+    public String getShop_name() {
+        return shop_name;
     }
 
-    public void setShopName(String shopName) {
-        this.shopName = shopName;
+    public void setShop_name(String shop_name) {
+        this.shop_name = shop_name;
     }
 
-    public String getOrderTime() {
-        return orderTime;
+    public String getOrder_time() {
+        return order_time;
     }
 
-    public void setOrderTime(String orderTime) {
-        this.orderTime = orderTime;
+    public void setOrder_time(String order_time) {
+        this.order_time = order_time;
     }
 
-    public String getOrderStatus() {
-        return orderStatus;
+    public String getDelivery_status() {
+        return delivery_status;
     }
 
-    public void setOrderStatus(String orderStatus) {
-        this.orderStatus = orderStatus;
+    public void setDelivery_status(String delivery_status) {
+        this.delivery_status = delivery_status;
     }
 
-    public GeoPoint getShopGeoPoint() {
-        return shopGeoPoint;
+    public GeoPoint getShop_geo_point() {
+        return shop_geo_point;
     }
 
-    public void setShopGeoPoint(GeoPoint shopGeoPoint) {
-        this.shopGeoPoint = shopGeoPoint;
+    public void setShop_geo_point(GeoPoint shop_geo_point) {
+        this.shop_geo_point = shop_geo_point;
     }
 
-    public GeoPoint getShippingGeoPoint() {
-        return shippingGeoPoint;
+    public GeoPoint getShipping_geo_point() {
+        return shipping_geo_point;
     }
 
-    public void setShippingGeoPoint(GeoPoint shippingGeoPoint) {
-        this.shippingGeoPoint = shippingGeoPoint;
+    public void setShipping_geo_point(GeoPoint shipping_geo_point) {
+        this.shipping_geo_point = shipping_geo_point;
     }
 
-    public GeoPoint getMyGeoPoint() {
-        return myGeoPoint;
+    public GeoPoint getMy_geo_point() {
+        return my_geo_point;
     }
 
-    public void setMyGeoPoint(GeoPoint myGeoPoint) {
-        this.myGeoPoint = myGeoPoint;
+    public void setMy_geo_point(GeoPoint my_geo_point) {
+        this.my_geo_point = my_geo_point;
     }
+
+
+    public Map<String, Object> toMap(){
+        Map<String, Object> map  = new HashMap <>();
+        map.put( "order_id", order_id );
+        map.put( "delivery_id", delivery_id );
+        map.put( "shop_id", shop_id );
+        map.put( "shop_name", shop_name );
+        map.put( "shop_address", shop_address );
+        map.put( "shipping_address", shipping_address );
+        map.put( "order_time", order_time );
+        map.put( "delivery_status", delivery_status );
+        map.put( "shop_geo_point", shop_geo_point );
+        map.put( "shipping_geo_point", shipping_geo_point );
+        map.put( "my_geo_point", my_geo_point );
+        return map;
+    }
+
 }

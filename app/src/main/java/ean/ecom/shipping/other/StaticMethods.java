@@ -112,6 +112,11 @@ public class StaticMethods {
         return crrTime;
     }
 
+    public static Timestamp getCrrTimestamp(){
+        Date date =  Calendar.getInstance().getTime();
+        return new Timestamp( date );
+    }
+
     // yyyy/mm/dd hh:mm:ss
 
     public static String getScheduleTimeForOTP(){
