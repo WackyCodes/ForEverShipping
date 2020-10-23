@@ -13,12 +13,11 @@ import android.view.ViewGroup;
 
 import ean.ecom.shipping.OnFragmentSetListener;
 import ean.ecom.shipping.R;
-import ean.ecom.shipping.SetFragmentActivity;
 
 import static ean.ecom.shipping.other.StaticValues.NOTIFICATION_TYPE_ORDERS;
 import static ean.ecom.shipping.other.StaticValues.NOTIFICATION_TYPE_OTHERS;
 
-public class NotificationFragment extends Fragment implements OnNotificationUpdater {
+public class NotificationFragment extends Fragment implements OnFragmentSetListener {
 
     public NotificationFragment(OnFragmentSetListener onFragmentSetListener, int notificationType) {
         this.onFragmentSetListener = onFragmentSetListener;
@@ -56,15 +55,33 @@ public class NotificationFragment extends Fragment implements OnNotificationUpda
     }
 
     @Override
-    public void onNotificationClick() {
+    public void onResume() {
+        if (notificationAdaptor!=null){
+            notificationAdaptor.notifyDataSetChanged();
+        }
+        super.onResume();
+    }
+
+    @Override
+    public void setTitle(String title) {
 
     }
 
     @Override
-    public void onNotificationClick(Fragment fragment) {
-        onFragmentSetListener.setNextFragment( fragment );
+    public void showToast(String msg) {
+        onFragmentSetListener.showToast( msg );
     }
 
+
+    @Override
+    public void onBackPressed(int From, String backTitle) {
+        onFragmentSetListener.onBackPressed( From, backTitle );
+    }
+
+    @Override
+    public void setNextFragment(Fragment fragment) {
+        onFragmentSetListener.setNextFragment( fragment );
+    }
 
 
 }

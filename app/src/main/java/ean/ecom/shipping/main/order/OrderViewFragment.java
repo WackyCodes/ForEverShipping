@@ -3,7 +3,6 @@ package ean.ecom.shipping.main.order;
 import android.app.ProgressDialog;
 import android.os.Bundle;
 
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -20,26 +19,27 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.ListenerRegistration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ean.ecom.shipping.OnFragmentSetListener;
 import ean.ecom.shipping.R;
 import ean.ecom.shipping.database.OrderQuery;
 import ean.ecom.shipping.other.DialogsClass;
 import ean.ecom.shipping.other.StaticMethods;
 
 import static ean.ecom.shipping.database.DBQuery.currentOrderListModelList;
-import static ean.ecom.shipping.database.DBQuery.currentUser;
 import static ean.ecom.shipping.database.DBQuery.firebaseFirestore;
+import static ean.ecom.shipping.database.DBQuery.orderNotificationList;
+import static ean.ecom.shipping.main.MainMapsFragment.shippingOrderAdaptor;
+import static ean.ecom.shipping.notification.NotificationFragment.orderNotificationAdaptor;
 import static ean.ecom.shipping.other.StaticValues.ORDER_ACCEPTED;
 import static ean.ecom.shipping.other.StaticValues.ORDER_CANCELLED;
 import static ean.ecom.shipping.other.StaticValues.ORDER_CODE_ACCEPTED;
 import static ean.ecom.shipping.other.StaticValues.ORDER_CODE_CANCEL;
-import static ean.ecom.shipping.other.StaticValues.ORDER_CODE_COMPLETE;
 import static ean.ecom.shipping.other.StaticValues.ORDER_PICKED;
 import static ean.ecom.shipping.other.StaticValues.ORDER_PROCESS;
 import static ean.ecom.shipping.other.StaticValues.ORDER_SUCCESS;
@@ -49,20 +49,22 @@ import static ean.ecom.shipping.other.StaticValues.VIEW_ORDER_FROM_CURRENT_ORDER
 import static ean.ecom.shipping.other.StaticValues.VIEW_ORDER_FROM_NOTIFICATION;
 import static ean.ecom.shipping.other.StaticValues.VIEW_ORDER_PICKED_ORDERS;
 
-public class OrderViewFragment extends Fragment implements GetOrderDetailsListener {
+public class OrderViewFragment extends Fragment implements GetOrderDetailsListener, OnFragmentSetListener {
 
-    public OrderViewFragment(CurrentOrderListModel currentOrderListModel, @Nullable ListenerRegistration orderUpdateListenerR ) {
+    public OrderViewFragment(OnFragmentSetListener parentListener, CurrentOrderListModel currentOrderListModel ) {
         // Required empty public constructor
+        this.parentListener = parentListener;
+
         this.currentOrderListModel = currentOrderListModel;
         this.deliveryID = currentOrderListModel.getDelivery_id();
         this.orderID = currentOrderListModel.getOrder_id();
         this.shopID = currentOrderListModel.getShop_id();
         this.shopName = currentOrderListModel.getShop_name();
-        this.orderUpdateListenerR = orderUpdateListenerR;
     }
-    private CurrentOrderListModel currentOrderListModel;
 
-    private ListenerRegistration orderUpdateListenerR;
+    private CurrentOrderListModel currentOrderListModel;
+    private OnFragmentSetListener parentListener;
+
     private String orderID;
     private String shopID;
     private String shopName;
@@ -106,6 +108,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
         orderQuery = new OrderQuery( this );
         dialog = new ProgressDialog( getContext() );
         dialog.setTitle( "Please wait..." );
+        dialog.setCancelable( false );
 
         layoutDetails = view.findViewById( R.id.layout_details );
 
@@ -132,7 +135,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
         tvSuccessDelivered = view.findViewById( R.id.order_success_text );
 
         // set Default View....
-        Thread loadDataThread = new Thread(new LoadOrderData( orderID, shopID, USER_ACCOUNT.getUser_city_code(), this ));
+        Thread loadDataThread = new Thread(new LoadOrderData( orderID, shopID, this ));
         loadDataThread.start();
         showDialog();
 
@@ -192,17 +195,19 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
     /// Set Data...
     private void setOrderData(){
         String dStatus = orderModel.getDeliveryStatus();
-        if (dStatus.equals( "ACCEPTED" )){
+        if (dStatus.equals( ORDER_ACCEPTED )){
             setDefaultLayout( VIEW_ORDER_FROM_NOTIFICATION );
-
-        }else if( dStatus.equals( "PICKED" )){
+        }else if( dStatus.equals( ORDER_PICKED )){
             setDefaultLayout( VIEW_ORDER_PICKED_ORDERS );
-        }else if( dStatus.equals( "SUCCESS" )){
+        }else if( dStatus.equals( ORDER_SUCCESS )){
             setDefaultLayout( VIEW_ORDER_FROM_COMPLETE_ORDERS );
-        }else if( dStatus.equals( "PROCESS" )){
+        }else if( dStatus.equals( ORDER_PROCESS )){
             setDefaultLayout( VIEW_ORDER_FROM_CURRENT_ORDERS );
             // Get OTP ..
             orderQuery.getOtpQuery( orderModel.getDeliveryID() );
+        }else{
+            // Default...
+            acceptDeliveryBtn.setVisibility( View.VISIBLE );
         }
         setProductItemLayout();
 
@@ -226,12 +231,15 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
                 buttonCompleteDelivery.setVisibility( View.GONE );
                 buttonCancelDelivery.setVisibility( View.GONE );
                 acceptDeliveryBtn.setVisibility( View.VISIBLE );
+                acceptDeliveryBtn.setEnabled( true );
                 layoutOTP.setVisibility( View.GONE );
+                tvOrderID.setText( orderID );
                 tvSuccessDelivered.setVisibility( View.GONE );
                 break;
             case VIEW_ORDER_FROM_CURRENT_ORDERS:
                 buttonCompleteDelivery.setVisibility( View.GONE );
                 buttonCancelDelivery.setVisibility( View.VISIBLE );
+                buttonCancelDelivery.setEnabled( true );
                 acceptDeliveryBtn.setVisibility( View.GONE );
                 layoutOTP.setVisibility( View.VISIBLE );
                 etCustomerOtp.setVisibility( View.GONE );
@@ -248,6 +256,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
                 break;
             case VIEW_ORDER_PICKED_ORDERS:
                 buttonCompleteDelivery.setVisibility( View.VISIBLE );
+                buttonCompleteDelivery.setEnabled( true );
                 buttonCancelDelivery.setVisibility( View.GONE );
                 acceptDeliveryBtn.setVisibility( View.GONE );
                 layoutOTP.setVisibility( View.VISIBLE );
@@ -256,6 +265,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
                 tvSuccessDelivered.setVisibility( View.GONE );
                 break;
             default:
+                acceptDeliveryBtn.setVisibility( View.VISIBLE );
                 break;
         }
     }
@@ -273,7 +283,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
 
         /**  Add Listener... Only Call when Order not success! */
         if (! orderModel.getDeliveryStatus().equals( ORDER_SUCCESS )){
-            orderQuery.onOrderUpdateListener( orderUpdateListenerR, this, deliveryID );
+            orderQuery.onOrderUpdateListener( this, deliveryID );
         }
         // Set Other Data....
         setOrderData();
@@ -317,23 +327,27 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
             if (acceptOrderThread != null && acceptOrderThread.isAlive()){
                 acceptOrderThread.suspend();
             }
+            orderID = orderModel.getOrderID();
             //  Check whether Order accepted by you or not?
 //            String resultUID = result.get( "UID" ).toString();
             if(result.get( "delivery_by_uid" ).toString().equals( USER_ACCOUNT.getUser_mobile() )){
-                // Update Order in the Product...
-                Map<String, Object> updateMap = new HashMap();
-                updateMap.put( "delivery_by_uid", USER_ACCOUNT.getUser_mobile() );
-                updateMap.put( "delivery_by_name", USER_ACCOUNT.getUser_name() );
-                updateMap.put( "delivery_by_mobile", USER_ACCOUNT.getUser_mobile() );
-                updateMap.put( "delivery_id", deliveryID );
-                updateMap.put( "delivery_vehicle_no", USER_ACCOUNT.getUser_vehicle_number() );
-                //  updateMap.put( "delivery_status", ORDER_PROCESS );
-                // Update Order In the Shop Order List...
-                orderQuery.updateOrderOnShop( this, shopID, orderID, updateMap, 1);
 
-                // add Model into Current Order List...
-                orderQuery.addOrderInCurrentDelivery( this, currentOrderListModel, deliveryID, result.get( "verify_otp" ).toString(), false );
+                if (getIndexOfCurrentListModel( orderID ) == -1){
+                    // Update Order in the Product...
+                    Map<String, Object> updateMap = new HashMap();
+                    updateMap.put( "delivery_by_uid", USER_ACCOUNT.getUser_mobile() );
+                    updateMap.put( "delivery_by_name", USER_ACCOUNT.getUser_name() );
+                    updateMap.put( "delivery_by_mobile", USER_ACCOUNT.getUser_mobile() );
+                    updateMap.put( "delivery_id", deliveryID );
 
+                    updateMap.put( "delivery_vehicle_no", USER_ACCOUNT.getUser_vehicle_number() );
+                    // Update Order In the Shop Order List...
+                    orderQuery.updateOrderOnShop( this, shopID, orderID, updateMap, 1);
+                    // add Model into Current Order List...
+                    orderQuery.addOrderInCurrentDelivery( this, currentOrderListModel, deliveryID, result.get( "verify_otp" ).toString(), false );
+                }else{
+                    onAcceptedOrder( result.get( "verify_otp" ).toString() );
+                }
             }
             else{
                 dismissDialog();
@@ -345,6 +359,17 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
                     dialog.dismiss();
                     getActivity().finish();
                 } ).show();
+            }
+
+            // Remove item from Notification List....
+            for (CurrentOrderListModel model : orderNotificationList){
+                if (model.getOrder_id().equals( orderID )){
+                    orderNotificationList.remove( model );
+                    if ( orderNotificationAdaptor != null ){
+                        orderNotificationAdaptor.notifyDataSetChanged();
+                    }
+                    break;
+                }
             }
 
         } else
@@ -362,14 +387,20 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
         }else
             // if any Customer Cancel Order ...
         if(updateResultID.toUpperCase().equals( ORDER_CANCELLED )) {
-            // cancel.... by Customer... TODO : Set Pushup Notification to Delivery Boy...
+            // cancel.... by Customer... TODO: Set Push up Notification to Delivery Boy...
+            DialogsClass.alertDialog( getContext(), "Order Cancelled!", " Order has been cancelled by customer, Now you don't need to pickup order!" )
+                    .setPositiveButton( "OK", (dialog, which) -> {
+                        dialog.dismiss();
+                        getActivity().finish();
+                    } ).show();
+
             Map<String, Object> updateMap = new HashMap();
             updateMap.put( "delivery_by_uid", null );
             updateMap.put( "delivery_by_name", null );
             updateMap.put( "delivery_by_mobile", null );
             updateMap.put( "delivery_vehicle_no", null );
 //                updateMap.put( "delivery_status", "PROCESS" );
-            orderQuery.updateOrderOnShop( this, shopID, orderID, updateMap, 3);
+            orderQuery.updateOrderOnShop( this, shopID, orderID, updateMap, 4);
         }
 
     }
@@ -385,9 +416,31 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
     }
 
     @Override
-    public void onCancelledOrder() {
-        dismissDialog();
-        getActivity().finish();
+    public void onCancelledOrder(boolean isCancelByCustomer) {
+        if(isCancelByCustomer){ // Cancel By Customer...
+            // Delete From Public Delivery ID...
+            orderQuery.deleteDeliveryIdQuery(this, deliveryID, true );
+            // Set Back Process...
+            parentListener.onBackPressed( -1, null );
+        }else{ // Cancel By Delivery Boy...
+            // Set UI...
+            setDefaultLayout( VIEW_ORDER_FROM_NOTIFICATION );
+            orderModel.setDeliveryStatus( ORDER_ACCEPTED );
+
+            // Remove from MyOrder Document...
+            orderQuery.deleteMyDeliveryID( this, deliveryID, USER_ACCOUNT.getUser_mobile() );
+
+            // Remove from Current Order list...
+            int rmIndex =  getIndexOfCurrentListModel( orderID );
+            if ( rmIndex >= 0){
+                currentOrderListModelList.remove( rmIndex );
+                // NotifyDataSetChanged...
+                if (shippingOrderAdaptor!= null){
+                    shippingOrderAdaptor.notifyDataSetChanged();
+                }
+            }
+            dismissDialog();
+        }
     }
 
     // Set Order Complete Steps...
@@ -413,15 +466,15 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
             case 3: // Success delete temp Delivery Document...
                 dismissDialog();
                 // TODO: Send to User Success Notification...
-
                 // set UI...
                 setDefaultLayout( VIEW_ORDER_FROM_COMPLETE_ORDERS );
-                int crrListIndex = getIndexOfCurrentListModel();
+                int crrListIndex = getIndexOfCurrentListModel( orderID );
                 if (crrListIndex >= 0){
                     currentOrderListModelList.get( crrListIndex ).setDelivery_status( ORDER_SUCCESS );
-                }else{
-                    currentOrderListModelList.add( currentOrderListModel );
                 }
+//                else{
+//                    currentOrderListModelList.add( currentOrderListModel );
+//                }
                 break;
             default:
                 break;
@@ -452,12 +505,13 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
 
                 // set UI...
                 setDefaultLayout( VIEW_ORDER_FROM_COMPLETE_ORDERS );
-                int crrListIndex = getIndexOfCurrentListModel();
+                int crrListIndex = getIndexOfCurrentListModel( orderID );
                 if (crrListIndex >= 0){
                     currentOrderListModelList.get( crrListIndex ).setDelivery_status( ORDER_SUCCESS );
-                }else{
-                    currentOrderListModelList.add( currentOrderListModel );
                 }
+//                else{
+//                    currentOrderListModelList.add( currentOrderListModel );
+//                }
                 // Request to Delete Delivery Document...
                 orderQuery.deleteDeliveryIdQuery(this, deliveryID, true);
             case 0: // Failed to Verify OTP...
@@ -470,13 +524,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
     // Set UI after Accept Order to Delivery...!
     @Override
     public void onAcceptedOrder(String otp) {
-        buttonCompleteDelivery.setVisibility( View.GONE );
-        buttonCancelDelivery.setVisibility( View.VISIBLE );
-        acceptDeliveryBtn.setVisibility( View.GONE );
-        layoutOTP.setVisibility( View.VISIBLE );
-
-        tvShopOtp.setVisibility( View.VISIBLE );
-        etCustomerOtp.setVisibility( View.GONE );
+        setDefaultLayout( VIEW_ORDER_FROM_CURRENT_ORDERS );
         // Set Data...
         tvOtpTitle.setText( "Shop OTP" );
         tvShopOtp.setText( otp );
@@ -504,17 +552,32 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
 
     @Override
     public void showToast(String msg) {
-        Toast.makeText( getContext(), msg, Toast.LENGTH_SHORT ).show();
+        parentListener.showToast( msg );
     }
 
-    private int getIndexOfCurrentListModel(){
-        currentOrderListModelList.add( currentOrderListModel );
+    private int getIndexOfCurrentListModel(String orderID){
+//        currentOrderListModelList.add( currentOrderListModel );
         for (CurrentOrderListModel model : currentOrderListModelList){
-            if (currentOrderListModel.getOrder_id().equals( model.getOrder_id() )){
+            if (orderID.equals( model.getOrder_id() )){
                 return currentOrderListModelList.indexOf( model );
             }
         }
         return -1;
+    }
+
+    @Override
+    public void setTitle(String title) {
+
+    }
+
+    @Override
+    public void onBackPressed(int From, String backTitle) {
+
+    }
+
+    @Override
+    public void setNextFragment(Fragment fragment) {
+
     }
 
     /**  Order Status
@@ -534,13 +597,11 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
 
         private String orderID;
         private String shopId;
-        private String CityCode;
         private GetOrderDetailsListener listener;
 
-        public LoadOrderData( String orderID, String shopId, String CityCode, GetOrderDetailsListener listener) {
+        public LoadOrderData( String orderID, String shopId, GetOrderDetailsListener listener) {
             this.orderID = orderID;
             this.shopId = shopId;
-            this.CityCode = CityCode;
             this.listener = listener;
         }
 

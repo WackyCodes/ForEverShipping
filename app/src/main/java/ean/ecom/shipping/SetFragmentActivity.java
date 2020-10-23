@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import android.os.Bundle;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
 import ean.ecom.shipping.notification.NotificationFragment;
 
@@ -81,8 +82,16 @@ public class SetFragmentActivity extends AppCompatActivity implements OnFragment
     }
 
     @Override
+    public void showToast(String msg) {
+        Toast.makeText( this, msg, Toast.LENGTH_SHORT ).show();
+    }
+
+    @Override
     public void onBackPressed(int From, String backTitle) {
-        setTitle( backTitle );
+        if (backTitle != null){
+            setTitle( backTitle );
+        }
+        onBackPressed();
     }
 
 

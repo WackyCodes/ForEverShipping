@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.app.ActivityManager;
@@ -23,7 +24,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -34,16 +34,20 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.material.navigation.NavigationView;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import ean.ecom.shipping.database.DBQuery;
 import ean.ecom.shipping.main.MainMapsFragment;
 import ean.ecom.shipping.service.LocationService;
 
 import static ean.ecom.shipping.other.StaticValues.ERROR_DIALOG_REQUEST;
 import static ean.ecom.shipping.other.StaticValues.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static ean.ecom.shipping.other.StaticValues.PERMISSIONS_REQUEST_ENABLE_GPS;
+import static ean.ecom.shipping.other.StaticValues.USER_ACCOUNT;
 import static ean.ecom.shipping.other.StaticValues.mapServicePackage;
 
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, OnFragmentSetListener {
     private String TAG = "MainActivity";
+
+    private FragmentManager mainActivityManager;
 
     // FrameLayout...
     private FrameLayout mainFrameLayout;
@@ -65,7 +69,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate( savedInstanceState );
         setContentView( R.layout.activity_main );
-
+        // Assign manager...
+        mainActivityManager = getSupportFragmentManager();
 
         toolbar = findViewById( R.id.appToolbar );
         drawer = findViewById( R.id.drawer_layout );
@@ -104,7 +109,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate( R.menu.menu_main_activity_options, menu);
-
         // Check First whether any item in cart or not...
 
         // notification badge...
@@ -138,6 +142,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             notifyIntent.putExtra( "FRAGMENT_CODE", SetFragmentActivity.FRAGMENT_NOTIFICATION_ORDERS );
             startActivity( notifyIntent );
         } );
+
+        // new Order Notification List...
+        DBQuery.getNewOrderNotification( USER_ACCOUNT.getUser_city_code() );
 
         return true;
     }
@@ -223,9 +230,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     // Fragment Transaction...
-    public void setFragment( FrameLayout frameLayout, Fragment fragment){
-        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
-        fragmentTransaction.add( frameLayout.getId(),fragment );
+    public void setFragment( Fragment fragment){
+        if (mainActivityManager == null){
+            mainActivityManager = getSupportFragmentManager();
+        }
+        FragmentTransaction fragmentTransaction = mainActivityManager.beginTransaction();
+        fragmentTransaction.add( mainFrameLayout.getId(),fragment );
         fragmentTransaction.commit();
     }
 
@@ -233,6 +243,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onResume() {
         super.onResume();
+
         if (checkMapServices()){
             if (mLocationPermissionGranted){
                 startLocationService();
@@ -248,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void setMainMapsFragment(){
         // Set Map Fragment...
-        setFragment( mainFrameLayout, new MainMapsFragment() );
+        setFragment(  new MainMapsFragment ( this ) );
 //        Toast.makeText( this, "Fragment Set!", Toast.LENGTH_SHORT ).show();
         Log.d( "SetMapFragment : " ,"Main Fragment is Set !");
     }
@@ -375,7 +386,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
     }
-    // Checking is Location Service is Already Running or Not.
+    // Checking is Location Service is Already Running or Not....
     private boolean isLocationServiceRunning() {
         ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
         for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
@@ -387,6 +398,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Log.d(TAG, "isLocationServiceRunning: location service is not running.");
         Toast.makeText( this, "service not running..", Toast.LENGTH_SHORT ).show();
         return false;
+    }
+
+    @Override
+    public void setTitle(String title) {
+        getSupportActionBar().setDisplayShowTitleEnabled( true );
+        getSupportActionBar().setTitle( title );
+    }
+
+    @Override
+    public void showToast(String msg) {
+        Toast.makeText( this, msg, Toast.LENGTH_SHORT ).show();
+    }
+
+    @Override
+    public void onBackPressed(int From, String backTitle) {
+        setTitle( backTitle );
+    }
+
+    @Override
+    public void setNextFragment(Fragment fragment) {
+        FragmentTransaction transaction = mainActivityManager.beginTransaction();
+        transaction.replace( mainFrameLayout.getId(), fragment ).addToBackStack( null );
+        transaction.setCustomAnimations( R.anim.slide_from_right, R.anim.slide_out_from_left, R.anim.slide_from_left, R.anim.slide_out_from_right );
+        transaction.commit();
     }
 
 }

@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 public interface OnFragmentSetListener {
 
     void setTitle(String title);
+    void showToast(String msg);
     void onBackPressed(int From, String backTitle);
     void setNextFragment(Fragment fragment);
 

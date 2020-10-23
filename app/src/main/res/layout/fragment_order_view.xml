@@ -42,14 +42,13 @@
                             android:layout_gravity="center"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="8892889232"
                             android:textColor="@color/colorPrimary"/>
 
                         <TextView
+                            android:text="(Order ID)"
                             android:layout_gravity="center"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="( Order ID )"
                             android:textColor="@color/colorDarkGray"
                             android:textSize="12sp"/>
                     </LinearLayout>
@@ -118,6 +117,7 @@
                         android:layout_gravity="center"
                         android:textAlignment="center"
                         android:gravity="center"
+                        android:visibility="invisible"
                         android:layout_margin="8dp"
                         android:text="Accept Delivery"
                         android:textColor="@color/colorWhite"
@@ -171,7 +171,6 @@
                         android:layout_marginStart="8dp"
                         android:layout_marginLeft="8dp"
                         android:gravity="center"
-                        android:text="AN Shop"
                         android:textAlignment="center"
                         android:textColor="@color/colorPrimary"
                         app:layout_constraintStart_toEndOf="@+id/imageView"
@@ -183,7 +182,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:gravity="center"
-                        android:text="(12329834)"
                         android:textAlignment="center"
                         android:textColor="@color/colorDarkGray"
                         app:layout_constraintStart_toStartOf="@+id/shop_name"
@@ -194,7 +192,6 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_margin="8dp"
-                        android:text="Shop Address"
                         android:textColor="@color/colorBlack"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@+id/get_shop_direction_layout"
@@ -270,7 +267,6 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_margin="8dp"
-                        android:text="Shipping Address"
                         android:textColor="@color/colorPrimary"
                         app:layout_constraintBottom_toBottomOf="parent"
                         app:layout_constraintEnd_toStartOf="@+id/get_shipping_direction_layout"

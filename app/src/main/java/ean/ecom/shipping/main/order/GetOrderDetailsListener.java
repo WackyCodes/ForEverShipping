@@ -20,7 +20,7 @@ public interface GetOrderDetailsListener {
     void onUpdateDeliveryStatus( String updateResultID, Map<String, Object> result );
 
     void onRequestToCancelOrder();
-    void onCancelledOrder();
+    void onCancelledOrder( boolean isCancelByCustomer );
 
     void onOrderCompleteNextStep(int step);
     void onOrderCompleteFailed(int failedStep);

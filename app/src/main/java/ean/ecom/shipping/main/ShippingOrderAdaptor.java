@@ -1,5 +1,6 @@
 package ean.ecom.shipping.main;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,11 +20,14 @@ import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.List;
 
+import ean.ecom.shipping.OnFragmentSetListener;
 import ean.ecom.shipping.R;
 import ean.ecom.shipping.main.order.CurrentOrderListModel;
 import ean.ecom.shipping.main.order.CurrentOrderUpdateListener;
+import ean.ecom.shipping.main.order.OrderViewActivity;
 import ean.ecom.shipping.other.StaticValues;
 
+import static ean.ecom.shipping.SetFragmentActivity.FRAGMENT_ORDER_VIEW;
 import static ean.ecom.shipping.database.DBQuery.getMyCollectionRef;
 
 /**
@@ -34,14 +38,16 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
 
     private List<CurrentOrderListModel> currentOrderListModelList;
     private ListenerRegistration orderUpdateLR;
+    private OnFragmentSetListener parentListener;
     private CurrentOrderUpdateListener orderUpdateListener;
 
     private MapAction mapActionFragment;
 
-    public ShippingOrderAdaptor(List <CurrentOrderListModel> currentOrderListModelList, MapAction mapActionFragment, CurrentOrderUpdateListener orderUpdateListener) {
+    public ShippingOrderAdaptor( OnFragmentSetListener parentListener, CurrentOrderUpdateListener orderUpdateListener, List <CurrentOrderListModel> currentOrderListModelList, MapAction mapActionFragment ) {
+        this.parentListener = parentListener;
+        this.orderUpdateListener = orderUpdateListener;
         this.currentOrderListModelList = currentOrderListModelList;
         this.mapActionFragment = mapActionFragment;
-        this.orderUpdateListener = orderUpdateListener;
         OrderUpdateListener();
     }
 
@@ -86,7 +92,7 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
 
         private void setData( final CurrentOrderListModel model, int position){
 
-            orderText.setText( "Order ID: " + model.getOrder_id() );
+            orderText.setText( "Order ID: " + model.getDelivery_id() );
             shopAddressText.setText( model.getShop_address() );
             shippingAddressText.setText( model.getShipping_address() );
 
@@ -106,26 +112,18 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
             }
 
             // Get Shop Direction... From My Location...!
-            getShopDirection.setOnClickListener( new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onDrawingPathLine( mapActionFragment, StaticValues.MY_GEO_POINTS, model.getShop_geo_point() );
-                }
-            } );
-
+            getShopDirection.setOnClickListener( v -> onDrawingPathLine( mapActionFragment, StaticValues.MY_GEO_POINTS, model.getShop_geo_point() ) );
+            // Order Details..
+            viewOrderDetailsBtn.setOnClickListener( v -> {
+//                parentListener.setNextFragment( new OrderViewFragment( parentListener, model,  null ));
+//                parentListener.setTitle(  "Order View" );
+                onOrderViewClick( position );
+            });
             // On Item Click...
-            itemView.setOnClickListener( new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    onDrawLineClick( model );
-                }
-            } );
+            itemView.setOnClickListener( v -> {
+//                    onDrawLineClick( model );
 
-            viewOrderDetailsBtn.setOnClickListener( new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    // TODO :
-                }
+                onOrderViewClick( position );
             } );
 
         }
@@ -150,6 +148,13 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
             }else{
                 onDrawingPathLine( mapActionFragment, new GeoPoint( 23.29900000,76.00023100 ), model.getShipping_geo_point() );
             }
+        }
+
+        private void onOrderViewClick(int position){
+            Intent intent = new Intent(itemView.getContext(), OrderViewActivity.class );
+            intent.putExtra( "MODEL_INDEX", position );
+            intent.putExtra( "MODEL_TYPE", FRAGMENT_ORDER_VIEW );
+            itemView.getContext().startActivity( intent );
         }
 
         @Override

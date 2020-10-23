@@ -21,7 +21,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".SetFragmentActivity"></activity>
+        <activity android:name=".main.order.OrderViewActivity"></activity>
+        <activity android:name=".SetFragmentActivity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -54,7 +55,7 @@
 
         <service
             android:name=".service.LocationService"
-            android:stopWithTask="true"></service>
+            android:stopWithTask="true" />
     </application>
 
 </manifest>

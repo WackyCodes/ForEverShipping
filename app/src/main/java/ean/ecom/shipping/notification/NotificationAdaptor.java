@@ -1,5 +1,6 @@
 package ean.ecom.shipping.notification;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,10 +11,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.firestore.GeoPoint;
 
+import ean.ecom.shipping.OnFragmentSetListener;
 import ean.ecom.shipping.R;
 import ean.ecom.shipping.main.order.CurrentOrderListModel;
+import ean.ecom.shipping.main.order.OrderViewActivity;
 import ean.ecom.shipping.main.order.OrderViewFragment;
 
+import static ean.ecom.shipping.SetFragmentActivity.FRAGMENT_NOTIFICATION_ORDERS;
 import static ean.ecom.shipping.database.DBQuery.orderNotificationList;
 import static ean.ecom.shipping.other.StaticValues.NOTIFICATION_TYPE_ORDERS;
 
@@ -23,12 +27,13 @@ import static ean.ecom.shipping.other.StaticValues.NOTIFICATION_TYPE_ORDERS;
  */
 public class NotificationAdaptor extends RecyclerView.Adapter<NotificationAdaptor.OrderViewHolder> {
 
-    private OnNotificationUpdater onNotificationUpdater;
+    private OnFragmentSetListener parentListener;
     private int notificationType;
 
 
-    public NotificationAdaptor(OnNotificationUpdater onNotificationUpdater, int notificationType) {
-        this.onNotificationUpdater = onNotificationUpdater;
+    public NotificationAdaptor(OnFragmentSetListener parentListener,  int notificationType) {
+        this.parentListener = parentListener;
+
         this.notificationType = notificationType;
     }
 
@@ -78,7 +83,6 @@ public class NotificationAdaptor extends RecyclerView.Adapter<NotificationAdapto
 
         }
 
-
         private void setData(int position){
 
             CurrentOrderListModel orderModel = orderNotificationList.get( position );
@@ -86,11 +90,14 @@ public class NotificationAdaptor extends RecyclerView.Adapter<NotificationAdapto
             tvShopName.setText( "New Order from " + orderModel.getShop_name() );
             tvShopAddress.setText( orderModel.getShop_address() );
             tvShippingAddress.setText( orderModel.getShipping_address() );
-
             itemView.setOnClickListener( v-> {
                 // on Order Click...
-                onNotificationUpdater.onNotificationClick(
-                        new OrderViewFragment( orderModel,  null ) );
+//                parentListener.setNextFragment(
+//                        new OrderViewFragment( parentListener, orderModel,  null ) );
+                Intent intent = new Intent(itemView.getContext(), OrderViewActivity.class );
+                intent.putExtra( "MODEL_INDEX", position );
+                intent.putExtra( "MODEL_TYPE", FRAGMENT_NOTIFICATION_ORDERS );
+                itemView.getContext().startActivity( intent );
             } );
 
             tvGetShopDirection.setOnClickListener( v -> {

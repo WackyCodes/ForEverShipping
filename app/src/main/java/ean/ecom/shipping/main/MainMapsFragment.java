@@ -43,6 +43,7 @@ import com.google.maps.model.DirectionsRoute;
 import java.util.ArrayList;
 import java.util.List;
 
+import ean.ecom.shipping.OnFragmentSetListener;
 import ean.ecom.shipping.R;
 import ean.ecom.shipping.database.DBQuery;
 import ean.ecom.shipping.main.map.TaskLoadedCallback;
@@ -52,13 +53,18 @@ import static ean.ecom.shipping.database.DBQuery.currentOrderListModelList;
 import static ean.ecom.shipping.other.StaticValues.MAPVIEW_BUNDLE_KEY;
 import static ean.ecom.shipping.other.StaticValues.USER_ACCOUNT;
 
-public class MainMapsFragment extends Fragment implements OnMapReadyCallback, MapAction, CurrentOrderUpdateListener
+public class MainMapsFragment extends Fragment implements OnMapReadyCallback, MapAction
         , GoogleMap.OnInfoWindowClickListener
         , GoogleMap.OnPolylineClickListener
-        , TaskLoadedCallback {
+        , TaskLoadedCallback
+        , OnFragmentSetListener
+        , CurrentOrderUpdateListener {
 
-    public MainMapsFragment() {
+    public MainMapsFragment( OnFragmentSetListener mainListener) {
+        this.mainListener = mainListener;
     }
+
+    private OnFragmentSetListener mainListener;
 
     private MapView mMapView;
     private GoogleMap myGoogleMap;
@@ -98,24 +104,24 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
         // On Button Clicks...
         onButtonClick();
 
+        if (currentOrderListModelList.size() == 0){
+            DBQuery.getCurrentOrderList( USER_ACCOUNT.getUser_mobile() );
+        }
+
         // Set Layout And Adaptor...
         LinearLayoutManager layoutManager = new LinearLayoutManager( getContext() );
         layoutManager.setOrientation( RecyclerView.VERTICAL );
         shippingProductRecycler.setLayoutManager( layoutManager );
 
         // Adaptor...
-        shippingOrderAdaptor = new ShippingOrderAdaptor( currentOrderListModelList, this, this );
+        shippingOrderAdaptor = new ShippingOrderAdaptor( this, this, currentOrderListModelList, this );
         shippingProductRecycler.setAdapter( shippingOrderAdaptor );
         // Notify..
         shippingOrderAdaptor.notifyDataSetChanged();
-        if (currentOrderListModelList.size() == 0){
-            DBQuery.getNewOrderNotification( USER_ACCOUNT.getUser_city_code() );
-        }
 
         // hide my location Default Button ...
         View locationButton = ((View) mMapView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
         locationButton.setVisibility( View.INVISIBLE );
-
 
         return view;
     }
@@ -478,8 +484,11 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
 
     @Override
     public void onResume() {
-        super.onResume();
+        if (shippingOrderAdaptor!=null){
+            shippingOrderAdaptor.notifyDataSetChanged();
+        }
         mMapView.onResume();
+        super.onResume();
     }
 
     @Override
@@ -514,9 +523,11 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
 
 // ========= Google Maps and Methods...====================================================
 
-    private void showToast(String s){
-        Toast.makeText( getContext(), s, Toast.LENGTH_SHORT ).show();
+    @Override
+    public void showToast(String msg) {
+        mainListener.showToast( msg );
     }
+
 
     private String getMapUrl(LatLng from, LatLng end, String mode){
         // Origin of route
@@ -534,4 +545,19 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
         return url;
     }
 
+
+    @Override
+    public void setTitle(String title) {
+        mainListener.setTitle( title );
+    }
+
+    @Override
+    public void onBackPressed(int From, String backTitle) {
+
+    }
+
+    @Override
+    public void setNextFragment(Fragment fragment) {
+        mainListener.setNextFragment( fragment );
+    }
 }

@@ -27,6 +27,7 @@ import ean.ecom.shipping.main.order.CurrentOrderListModel;
 import ean.ecom.shipping.notification.NotificationModel;
 import ean.ecom.shipping.other.StaticValues;
 
+import static ean.ecom.shipping.main.MainMapsFragment.shippingOrderAdaptor;
 import static ean.ecom.shipping.notification.NotificationFragment.orderNotificationAdaptor;
 
 /**
@@ -41,6 +42,7 @@ public class DBQuery {
     public static FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
 
     public static StorageReference storageReference = FirebaseStorage.getInstance().getReference();
+    private static CurrentOrderListModel model;
 
     public static void getOrderDetailsQuery(String CITY_CODE, String orderID) {
 
@@ -74,8 +76,8 @@ public class DBQuery {
 
     //    ListenerRegistration listenerRegistration;
     public static ListenerRegistration userNotificationLR;
-    public static List <CurrentOrderListModel> currentOrderListModelList = new ArrayList <>();
     public static List <NotificationModel> notificationModelList = new ArrayList <>();
+    public static List <CurrentOrderListModel> currentOrderListModelList = new ArrayList <>();
     public static List <CurrentOrderListModel> orderNotificationList = new ArrayList <>();
     // Get Notify Every New Order...
     public static void getNewOrderNotification(String CITY_CODE) {
@@ -148,6 +150,29 @@ public class DBQuery {
                         else if (MainActivity.badgeOrderCount != null){
                             MainActivity.badgeOrderCount.setVisibility( View.INVISIBLE );
                         }
+
+                    }
+                } );
+    }
+
+    public static void getCurrentOrderList(String userMobile){
+        firebaseFirestore.collection( "DELIVERY_BOYS" )
+                .document( userMobile ).collection( "DELIVERY" )
+                .whereEqualTo( "delivery_status", "ACCEPTED" )
+                .get()
+                .addOnCompleteListener( task -> {
+                    if (task.isSuccessful()){
+                        currentOrderListModelList = task.getResult().toObjects( CurrentOrderListModel.class );
+
+//                        for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()){
+//                            CurrentOrderListModel model  = (CurrentOrderListModel) documentSnapshot.getData();
+//                        }
+
+                        if (shippingOrderAdaptor!= null){
+                            shippingOrderAdaptor.notifyDataSetChanged();
+                        }
+
+                    }else{
 
                     }
                 } );

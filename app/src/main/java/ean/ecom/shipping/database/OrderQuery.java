@@ -18,6 +18,7 @@ import ean.ecom.shipping.other.StaticValues;
 import static ean.ecom.shipping.database.DBQuery.currentOrderListModelList;
 import static ean.ecom.shipping.database.DBQuery.currentUser;
 import static ean.ecom.shipping.database.DBQuery.firebaseFirestore;
+import static ean.ecom.shipping.main.MainMapsFragment.shippingOrderAdaptor;
 import static ean.ecom.shipping.other.StaticValues.ORDER_ACCEPTED;
 import static ean.ecom.shipping.other.StaticValues.ORDER_CODE_ACCEPTED;
 import static ean.ecom.shipping.other.StaticValues.ORDER_CODE_CANCEL;
@@ -36,9 +37,9 @@ public class OrderQuery {
         this.listener = listener;
     }
 
-    public void onOrderUpdateListener( ListenerRegistration orderUpdateListenerR, GetOrderDetailsListener listener, String deliveryID ){
+    public void onOrderUpdateListener( GetOrderDetailsListener listener, String deliveryID ){
         try{
-            orderUpdateListenerR = firebaseFirestore.collection( "DELIVERY" )
+            orderUpdateListener = firebaseFirestore.collection( "DELIVERY" )
                     .document( StaticValues.USER_ACCOUNT.getUser_city_code() ).collection( "DELIVERY" )
                     .document( deliveryID ).addSnapshotListener( (value, error) -> {
 
@@ -59,7 +60,6 @@ public class OrderQuery {
 
                     } );
 
-            orderUpdateListener = orderUpdateListenerR;
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -112,9 +112,11 @@ public class OrderQuery {
                         }else if (updateRequest == 2){
 //                            listener.showToast( "Order No." + orderID + " : Successfully Delivered.!" );
                             listener.onOrderCompleteNextStep( 1 ); //successfully Update in shop Order List...
-                        }else if (updateRequest == 3){
-                            listener.showToast( "Order No." + orderID + " : Cancelled.!" );
-                            listener.onCancelledOrder();
+                        }else if (updateRequest == 3){ // Cancel by Delivery Boy...
+//                            listener.showToast( "Order No." + orderID + " : Cancelled.!" );
+                            listener.onCancelledOrder( false );
+                        }else if( updateRequest == 4){ // Cancel by Customer...
+                            listener.onCancelledOrder( true );
                         }
                     }else{
                         if (updateRequest == 2){
@@ -142,8 +144,15 @@ public class OrderQuery {
                             listener.onOrderCompleteNextStep( 2 ); // Success Update in Delivery List...
                         }else{ // Accepted
                             // Add into Current Shipping List...
-                            currentOrderListModelList.add( currentOrderListModel );
                             listener.onAcceptedOrder( OTP );
+
+                            for (CurrentOrderListModel model : currentOrderListModelList){
+                                if (currentOrderListModel.getOrder_id().equals( model.getOrder_id() )){
+                                    return;
+                                }
+                            }
+                            // Add item...
+                            currentOrderListModelList.add( currentOrderListModel );
                         }
 
                     }else{
@@ -156,21 +165,42 @@ public class OrderQuery {
     }
 
     public void deleteDeliveryIdQuery(GetOrderDetailsListener listener, String deliveryID, boolean isRetry){
-        firebaseFirestore.collection( "DELIVERY" )
-                .document( StaticValues.USER_ACCOUNT.getUser_city_code() ).collection( "DELIVERY" )
+        try{
+            firebaseFirestore.collection( "DELIVERY" )
+                    .document( StaticValues.USER_ACCOUNT.getUser_city_code() ).collection( "DELIVERY" )
+                    .document( deliveryID )
+                    .delete()
+                    .addOnCompleteListener( task -> {
+                        if (task.isSuccessful()){
+                            if (!isRetry){
+                                listener.onOrderCompleteNextStep( 3 ); // Success delete temp Delivery Document...
+                            }
+                        }else{
+                            if (!isRetry){
+                                listener.onOrderCompleteFailed( 3 ); // Failed to delete temp Delivery Document..
+                            }
+                        }
+                    } );
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    public void deleteMyDeliveryID( GetOrderDetailsListener listener, String deliveryID, String userMobile ){
+        firebaseFirestore.collection( "DELIVERY_BOYS" )
+                .document( userMobile ).collection( "DELIVERY" )
                 .document( deliveryID )
                 .delete()
                 .addOnCompleteListener( task -> {
                     if (task.isSuccessful()){
-                        if (!isRetry){
-                            listener.onOrderCompleteNextStep( 3 ); // Success delete temp Delivery Document...
-                        }
+                        listener.showToast( "Successfully cancelled!" );
                     }else{
-                        if (!isRetry){
-                            listener.onOrderCompleteFailed( 3 ); // Failed to delete temp Delivery Document..
-                        }
+                        listener.showToast( "Please check Your Internet Connection!" );
+                        deleteMyDeliveryID( listener, deliveryID, userMobile );
                     }
                 } );
+
     }
 
     public static class UpdateOrderStatus implements Runnable{

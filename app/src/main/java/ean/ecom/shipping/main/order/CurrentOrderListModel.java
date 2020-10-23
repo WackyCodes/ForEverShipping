@@ -1,5 +1,8 @@
 package ean.ecom.shipping.main.order;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.firebase.firestore.GeoPoint;
 
 import java.util.HashMap;
@@ -9,7 +12,7 @@ import java.util.Map;
  * Created by Shailendra (WackyCodes) on 26/09/2020 17:12
  * ( To Know more, Click : https://linktr.ee/wackycodes )
  */
-public class CurrentOrderListModel {
+public class CurrentOrderListModel implements Parcelable {
 
     /**  Order Status
      *          1. WAITING - ( For Accept )
@@ -52,6 +55,7 @@ public class CurrentOrderListModel {
         this.shipping_geo_point = shipping_geo_point;
         this.my_geo_point = my_geo_point;
     }
+
 
     public String getOrder_id() {
         return order_id;
@@ -157,5 +161,47 @@ public class CurrentOrderListModel {
         map.put( "my_geo_point", my_geo_point );
         return map;
     }
+
+    protected CurrentOrderListModel(Parcel in) {
+        order_id = in.readString();
+        delivery_id = in.readString();
+        shop_id = in.readString();
+        shop_name = in.readString();
+        shop_address = in.readString();
+        shipping_address = in.readString();
+        order_time = in.readString();
+        delivery_status = in.readString();
+    }
+
+    public static final Creator <CurrentOrderListModel> CREATOR = new Creator <CurrentOrderListModel>() {
+        @Override
+        public CurrentOrderListModel createFromParcel(Parcel in) {
+            return new CurrentOrderListModel( in );
+        }
+
+        @Override
+        public CurrentOrderListModel[] newArray(int size) {
+            return new CurrentOrderListModel[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString( order_id );
+        dest.writeString( delivery_id );
+        dest.writeString( shop_id );
+        dest.writeString( shop_name );
+        dest.writeString( shop_address );
+        dest.writeString( shipping_address );
+        dest.writeString( order_time );
+        dest.writeString( delivery_status );
+    }
+
+
 
 }
