@@ -43,19 +43,23 @@ public class OrderQuery {
                     .document( StaticValues.USER_ACCOUNT.getUser_city_code() ).collection( "DELIVERY" )
                     .document( deliveryID ).addSnapshotListener( (value, error) -> {
 
-                        Map<String, Object> resultMap = new HashMap <>();
+                        try{
+                            Map<String, Object> resultMap = new HashMap <>();
 
-                        String order_status = value.get( "delivery_status" ).toString();
+                            String order_status = value.get( "delivery_status" ).toString();
 
-                        if(value.get( "delivery_by_uid" )!= null){
-                            resultMap.put( "delivery_by_uid",  value.get( "delivery_by_uid" ).toString() );
-                        }
-                        if(value.get( "verify_otp" )!= null){
-                            resultMap.put( "verify_otp",  value.get( "verify_otp" ).toString() );
-                        }
+                            if(value.get( "delivery_by_uid" )!= null){
+                                resultMap.put( "delivery_by_uid",  value.get( "delivery_by_uid" ).toString() );
+                            }
+                            if(value.get( "verify_otp" )!= null){
+                                resultMap.put( "verify_otp",  value.get( "verify_otp" ).toString() );
+                            }
 
-                        if (listener != null){
-                            listener.onUpdateDeliveryStatus( order_status, resultMap );
+                            if (listener != null){
+                                listener.onUpdateDeliveryStatus( order_status, resultMap );
+                            }
+                        }catch(NullPointerException e){
+                            e.printStackTrace();
                         }
 
                     } );
@@ -86,7 +90,7 @@ public class OrderQuery {
                 .get()
                 .addOnCompleteListener( task -> {
                     if (task.isSuccessful()){
-                        if (task.getResult().get( "success_delivery_otp" ).toString().equals( OTP )){
+                        if (task.getResult().get( "order_accepted_otp" ).toString().equals( OTP )){ // order_accepted_otp
                             listener.onOrderCompleteNextStep( 0 ); // Verified OTP...
                         }else{
                             listener.onCustomerOTPNotVerified( false );
