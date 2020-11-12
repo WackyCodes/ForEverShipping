@@ -115,8 +115,17 @@ public class SignInFragment extends Fragment implements CheckUserPermission.Chec
 
     @BindingAdapter({"toastMessage"})
     public static void setToastMessage(View view, String message) {
-        if (message != null)
-            Toast.makeText(view.getContext(), message, Toast.LENGTH_SHORT).show();
+        if (view != null && message != null) {
+            Toast.makeText( view.getContext(), message, Toast.LENGTH_SHORT ).show();
+        }
+    }
+
+    private void showToast(String msg){
+        try{
+            Toast.makeText( getContext(), msg, Toast.LENGTH_SHORT ).show();
+        }catch(Exception e){
+
+        }
     }
 
     @Override
@@ -144,15 +153,25 @@ public class SignInFragment extends Fragment implements CheckUserPermission.Chec
     @Override
     public void onSignInResponse(boolean isSuccess, String userMobile) {
 //        dismissDialog();
-        writeFileInLocal( getContext(), "mobile", userMobile );
-        onAdminPermissionCheckStart( userMobile, null );
+        if (isSuccess){
+            writeFileInLocal( getContext(), "mobile", userMobile );
+            onAdminPermissionCheckStart( userMobile, null );
+        }else{
+            dismissDialog();
+            showToast( userMobile ); // //userMobile = Error Message
+        }
     }
 
     @Override
     public void onSignUpResponse(boolean isSuccess, String userMobile, String authID) {
 //        dismissDialog();
-        writeFileInLocal( getContext(), "mobile", userMobile );
-        onAdminPermissionCheckStart( userMobile, null );
+        if (isSuccess){
+            writeFileInLocal( getContext(), "mobile", userMobile );
+            onAdminPermissionCheckStart( userMobile, null );
+        }else{
+            dismissDialog();
+            showToast( userMobile ); //userMobile = Error Message
+        }
     }
 
     @Override
@@ -175,14 +194,13 @@ public class SignInFragment extends Fragment implements CheckUserPermission.Chec
             // Check Successfully!
             try {
                 // TODO : Add Check -> To Check whether User information updated or not...!
-
-                startActivity( new Intent( getActivity(), MainActivity.class ) );
-
                 if (USER_ACCOUNT.getUser_city_code() != null){
                     writeFileInLocal( getContext(), "citycode", USER_ACCOUNT.getUser_city_code()  );
                 }else{
                     writeFileInLocal( getContext(), "citycode", "BHOPAL" );
                 }
+
+                startActivity( new Intent( getActivity(), MainActivity.class ) );
                 getActivity().finish();
             }catch (NullPointerException e){
                 Log.d( "SignInFragment", "Activity Null : "+ e.getMessage() );

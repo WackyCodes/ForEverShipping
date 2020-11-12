@@ -10,6 +10,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.util.Log;
+
+import com.google.firebase.auth.FirebaseAuth;
 
 import ean.ecom.shipping.MainActivity;
 import ean.ecom.shipping.R;
@@ -38,6 +41,11 @@ public class WelcomeActivity extends AppCompatActivity implements CheckUserPermi
         super.onCreate( savedInstanceState );
         setContentView( R.layout.activity_welcome );
         welcomeActivity = this;
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
         CheckUserPermission.AppUsePermissionPresenter appUsePermissionPresenter = new CheckPermissionP( this, new UserPermissionM(), StaticValues.APP_VERSION );
 
         if( CheckInternetConnection.isInternetConnected( this ) ){
@@ -117,6 +125,8 @@ public class WelcomeActivity extends AppCompatActivity implements CheckUserPermi
             // Getting Data from Local Directory. If user has login before, then we can get the data that we had created at signUp/login time
             String userMobile = StaticMethods.readFileFromLocal(this, "mobile" );
             String cityCode = StaticMethods.readFileFromLocal(this, "citycode" );
+
+//            showToast( this, "Mobile : " + userMobile + " City : " + cityCode );
 
             if (userMobile != null && cityCode != null){
                 StaticValues.USER_MOBILE = userMobile;

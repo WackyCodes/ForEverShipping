@@ -8,16 +8,31 @@
         <item
             android:id="@+id/nav_home"
             android:icon="@drawable/ic_baseline_home_24"
+            android:iconTint="@color/colorWhite"
             android:title="Home" />
+
         <item
             android:id="@+id/menu_my_account"
             android:icon="@drawable/ic_baseline_account_circle_24"
-            android:iconTint="@color/colorBlack"
-            android:title="My Account" />
+            android:iconTint="@color/colorWhite"
+            android:title="My Profile" />
+
+        <item
+            android:id="@+id/menu_my_dashborad"
+            android:icon="@drawable/ic_baseline_dashboard_24"
+            android:iconTint="@color/colorWhite"
+            android:title="My Dashboard" />
+
+        <item
+            android:id="@+id/menu_my_delivery"
+            android:icon="@drawable/ic_baseline_directions_bike_24"
+            android:iconTint="@color/colorWhite"
+            android:title="My Delivery" />
 
         <item
             android:id="@+id/menu_log_out"
-            android:iconTint="@color/colorBlack"
+            android:icon="@drawable/ic_baseline_power_settings_new_24"
+            android:iconTint="@color/colorWhite"
             android:title="LogOut" />
 
 

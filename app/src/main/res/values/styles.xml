@@ -1,24 +1,26 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Base application theme. -->
+    <!-- Base application theme.  -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorControlNormal">@color/colorWhite</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="AppTheme.ToolTheme" parent="Widget.AppCompat.Light.PopupMenu">
+    <style name="ToolTheme" parent="Widget.AppCompat.Light.PopupMenu">
         <!-- Customize your theme here. -->
         <item name="android:homeAsUpIndicator">@drawable/ic_baseline_arrow_back_ios_24</item>
+        <item name="actionModeCloseDrawable">@drawable/ic_baseline_arrow_back_ios_24</item>
+        <item name="navigationIcon">@drawable/ic_baseline_menu_24</item>
         <item name="android:textColor">@color/colorWhite</item>
         <item name="android:drawableTint" tools:targetApi="m">@color/colorWhite</item>
         <item name="android:iconTint" tools:targetApi="o">@color/colorWhite</item>
         <item name="android:actionMenuTextColor">@color/colorWhite</item>
         <item name="colorControlNormal">@color/colorWhite</item>
-        <item name="height">@dimen/default_gap</item>
-        <item name="background">@color/colorPrimary</item>
         <item name="android:hideOnContentScroll" tools:targetApi="lollipop">true</item>
+        <item name="hideOnContentScroll" tools:targetApi="lollipop">true</item>
         <item name="android:resumeWhilePausing" tools:targetApi="lollipop">true</item>
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>

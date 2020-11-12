@@ -1,5 +1,7 @@
 package ean.ecom.shipping.launching;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -63,11 +65,10 @@ public class UserPermissionM implements CheckUserPermission.CheckAppUsePermissio
                         if (is_allowed) {
                             try{
 //                                User user = (User) task.getResult().getData();
-
                                 USER_ACCOUNT.setData(  task.getResult().getData() );
 
                             }catch (NullPointerException e){
-
+                                e.printStackTrace();
                             }finally {
                                 onCheckFinisher.onAdminPermissionCheckFinish( true );
                             }
@@ -87,20 +88,22 @@ public class UserPermissionM implements CheckUserPermission.CheckAppUsePermissio
     public void onSignInListener(final CheckUserPermission.CheckIsUserRegistered checkIsUserRegistered, final String userMobile,  String email, String password){
 
         firebaseAuth.signInWithEmailAndPassword( email, password )
-                .addOnCompleteListener( new OnCompleteListener <AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task <AuthResult> task) {
-                        if (task.isSuccessful()){
-                            // Assign Current User...
-                            checkIsUserRegistered.onSignInResponse( true, userMobile );
-                            DBQuery.currentUser = firebaseAuth.getCurrentUser();
-                            // Success...
-                            // Write in Local file
+                .addOnCompleteListener( task -> {
+                    if (task.isSuccessful()){
+                        // Assign Current User...
+                        DBQuery.currentUser = firebaseAuth.getCurrentUser();
+                        checkIsUserRegistered.onSignInResponse( true, userMobile );
+                        // Success...
+                        // Write in Local file
 //                            writeDataInLocal( context, signInShopID.getText().toString().trim(), signInMobile.getText().toString() );
-
-                        }else{
-                            checkIsUserRegistered.onSignInResponse( false, userMobile );
+                    }else{
+                        String err = "Failed! ";
+                        try{
+                            err = err + "Error : " + task.getException().getMessage();
+                        }catch (NullPointerException e){
+                            e.printStackTrace();
                         }
+                        checkIsUserRegistered.onSignInResponse( false, err );
                     }
                 } );
 
@@ -123,7 +126,13 @@ public class UserPermissionM implements CheckUserPermission.CheckAppUsePermissio
                             // Write in Local file...
 //                            writeDataInLocal( context, signInShopID.getText().toString().trim(), signInMobile.getText().toString() );
                         }else{
-                            checkIsUserRegistered.onSignUpResponse( false, userMobile,null );
+                            String err = "Failed! ";
+                            try{
+                                err = err + "Error : " + task.getException().getMessage();
+                            }catch (NullPointerException e){
+                                e.printStackTrace();
+                            }
+                            checkIsUserRegistered.onSignUpResponse( false, err,null );
                         }
                     }
                 } );
@@ -137,7 +146,17 @@ public class UserPermissionM implements CheckUserPermission.CheckAppUsePermissio
                 .addOnCompleteListener( new OnCompleteListener <Void>() {
                     @Override
                     public void onComplete(@NonNull Task <Void> task) {
-                        checkIsUserRegistered.onSignUpResponse( true, userMobile, authID );
+                        if (task.isSuccessful()){
+                            checkIsUserRegistered.onSignUpResponse( true, userMobile, authID );
+                        }else{
+                            String err = "Failed! ";
+                            try{
+                                err = err + "Error : " + task.getException().getMessage();
+                            }catch (NullPointerException e){
+                                e.printStackTrace();
+                            }
+                            checkIsUserRegistered.onSignUpResponse( false, err, authID );
+                        }
                     }
                 } );
     }

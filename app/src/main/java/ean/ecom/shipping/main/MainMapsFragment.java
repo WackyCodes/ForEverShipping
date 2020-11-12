@@ -2,6 +2,7 @@ package ean.ecom.shipping.main;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -9,7 +10,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
+import android.app.AlertDialog;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -18,9 +24,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -31,6 +41,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
@@ -48,6 +59,7 @@ import ean.ecom.shipping.R;
 import ean.ecom.shipping.database.DBQuery;
 import ean.ecom.shipping.main.map.TaskLoadedCallback;
 import ean.ecom.shipping.main.order.CurrentOrderUpdateListener;
+import ean.ecom.shipping.other.ViewWeightAnimationWrapper;
 
 import static ean.ecom.shipping.database.DBQuery.currentOrderListModelList;
 import static ean.ecom.shipping.other.StaticValues.MAPVIEW_BUNDLE_KEY;
@@ -60,6 +72,10 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
         , OnFragmentSetListener
         , CurrentOrderUpdateListener {
 
+    private final int NO_ORDER_STATE = 1;
+    private final int EXTENDED_STATE = 2;
+    private final int NORMAL_STATE = 3;
+
     public MainMapsFragment( OnFragmentSetListener mainListener) {
         this.mainListener = mainListener;
     }
@@ -70,6 +86,7 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
     private GoogleMap myGoogleMap;
     private GoogleApiClient wGoogleApiClient;
     private Polyline currentPolyline;
+    private FusedLocationProviderClient mFusedLocationClient;
 
     private GeoApiContext mGeoApiContext = null;
     private ArrayList<PolylineData> polylineDataList = new ArrayList <>();
@@ -81,11 +98,13 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
     // Layout Variables...
     private RecyclerView shippingProductRecycler;
     private ImageView upDownImageBtn;
+    private TextView textViewNoOrder; // no_order_text_view
+
+    private int currentLayoutState = NORMAL_STATE;
+    private ConstraintLayout mapLayout;
+    private ConstraintLayout orderLayout;
 
     private ImageView myLocationBtn;
-
-    //
-    private boolean isUp = false;
 
 
     @Nullable
@@ -96,28 +115,25 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
         mMapView = (MapView) view.findViewById( R.id.main_map_view );
         shippingProductRecycler = view.findViewById( R.id.shipping_product_recycler );
         upDownImageBtn = view.findViewById( R.id.up_image_view_btn );
+        textViewNoOrder = view.findViewById( R.id.no_order_text_view );
+
+        mapLayout = view.findViewById( R.id.map_view_const_layout );
+        orderLayout = view.findViewById( R.id.current_order_const_layout );
 
         myLocationBtn = view.findViewById( R.id.my_location_image_view_btn );
-
-        // Use this method to reduce the complexity of code...
-        initGoogleMap( savedInstanceState );
-        // On Button Clicks...
-        onButtonClick();
-
-        if (currentOrderListModelList.size() == 0){
-            DBQuery.getCurrentOrderList( USER_ACCOUNT.getUser_mobile() );
-        }
 
         // Set Layout And Adaptor...
         LinearLayoutManager layoutManager = new LinearLayoutManager( getContext() );
         layoutManager.setOrientation( RecyclerView.VERTICAL );
         shippingProductRecycler.setLayoutManager( layoutManager );
 
-        // Adaptor...
-        shippingOrderAdaptor = new ShippingOrderAdaptor( this, this, currentOrderListModelList, this );
-        shippingProductRecycler.setAdapter( shippingOrderAdaptor );
-        // Notify..
-        shippingOrderAdaptor.notifyDataSetChanged();
+        // Use this method to reduce the complexity of code...
+        initGoogleMap( savedInstanceState );
+        // On Button Clicks...
+        onButtonClick();
+
+        mFusedLocationClient = LocationServices
+                .getFusedLocationProviderClient(getActivity());
 
         // hide my location Default Button ...
         View locationButton = ((View) mMapView.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
@@ -151,31 +167,40 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
         }
     }
 
+    private void onStartFragment(){
+        // Notify..
+        shippingOrderAdaptor = new ShippingOrderAdaptor( this, this, currentOrderListModelList, this );
+        shippingProductRecycler.setAdapter( shippingOrderAdaptor );
+        shippingOrderAdaptor.notifyDataSetChanged();
+
+        // Get Current Order List...
+        if (currentOrderListModelList.size() == 0){
+            upDownImageBtn.setVisibility( View.GONE );
+            textViewNoOrder.setText( "Please wait..." );
+            DBQuery.getCurrentOrderList( this, USER_ACCOUNT.getUser_mobile() );
+        }else{
+            upDownImageBtn.setVisibility( View.VISIBLE );
+            textViewNoOrder.setVisibility( View.GONE );
+            shippingProductRecycler.setVisibility( View.VISIBLE );
+        }
+    }
+
     private void onButtonClick(){
         // Shipping Recycler view btn...
-        upDownImageBtn.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                isUp = !isUp;
-                upDownImageBtn.setEnabled( false );
-                if (isUp){
+        upDownImageBtn.setOnClickListener( v -> {
+            if (currentLayoutState != NO_ORDER_STATE){
+                if (currentLayoutState == NORMAL_STATE){
                     upDownImageBtn.setImageResource( R.drawable.ic_baseline_keyboard_arrow_down_24 );
-                    // TODO : Set Layout
+                    setCurrentLayoutState( currentLayoutState, EXTENDED_STATE );
                 }else{
                     upDownImageBtn.setImageResource( R.drawable.ic_outline_keyboard_arrow_up_24 );
-                    // TODO : Set Layout
+                    setCurrentLayoutState( currentLayoutState, NORMAL_STATE );
                 }
-                upDownImageBtn.setEnabled( true );
             }
         } );
 
         // My Location Button Click...
-        myLocationBtn.setOnClickListener( new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                setMyLocationBtn();
-            }
-        } );
+        myLocationBtn.setOnClickListener( v -> setMyLocationBtn() );
     }
 
  /**   @Override
@@ -251,21 +276,24 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
             myGoogleMap.addMarker( new MarkerOptions()
                     .position( markLatLong )
                     .title( title ) );
-            myGoogleMap.moveCamera( CameraUpdateFactory.newLatLng( markLatLong ) );
+//            myGoogleMap.moveCamera( CameraUpdateFactory.newLatLng( markLatLong ) );
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom( markLatLong, 16 );
+            myGoogleMap.animateCamera( cameraUpdate );
         }
+
     }
 
     @Override
-    public void drawPathLine(GeoPoint fromPoint, GeoPoint toPoint) {
+    public void drawPathLine( @Nullable GeoPoint fromPoint,@Nullable GeoPoint toPoint, @Nullable String addressLine ) {
         // Set Custom Marker......
-        LatLng fromLocation = new LatLng( fromPoint.getLatitude(), fromPoint.getLongitude() );
-        LatLng endLocation = new LatLng( toPoint.getLatitude(), toPoint.getLongitude() );
-
-        MarkerOptions fromMarkerOp = new MarkerOptions().position( fromLocation );
-        MarkerOptions endMarkerOp = new MarkerOptions().position( endLocation );
-
-        com.google.android.gms.maps.model.Marker fromMarker = myGoogleMap.addMarker( fromMarkerOp );
-        com.google.android.gms.maps.model.Marker endMarker = myGoogleMap.addMarker( endMarkerOp );
+//        LatLng fromLocation = new LatLng( fromPoint.getLatitude(), fromPoint.getLongitude() );
+//        LatLng endLocation = new LatLng( toPoint.getLatitude(), toPoint.getLongitude() );
+//
+//        MarkerOptions fromMarkerOp = new MarkerOptions().position( fromLocation );
+//        MarkerOptions endMarkerOp = new MarkerOptions().position( endLocation );
+//
+//        com.google.android.gms.maps.model.Marker fromMarker = myGoogleMap.addMarker( fromMarkerOp );
+//        com.google.android.gms.maps.model.Marker endMarker = myGoogleMap.addMarker( endMarkerOp );
 
         // Calculate Directions....
 //        calculateDirections(fromMarker, endMarker );
@@ -273,7 +301,14 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
         String mapUrl = getMapUrl( fromMarkerOp.getPosition(), endMarkerOp.getPosition(), "driving" );
         GetMapData getMapData = new GetMapData( this );
         getMapData.execute( mapUrl, "driving" );
+
  */
+        if (toPoint != null){
+            /// Get Map Direction....
+            onGetDirectionInMap( String.valueOf( toPoint.getLatitude() ), String.valueOf( toPoint.getLongitude() ), null);
+        }else {
+            onGetDirectionInMap( null, null, addressLine);
+        }
     }
 
     @Override
@@ -307,13 +342,14 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
             Toast.makeText( getContext(), "Turn ON your GPS Location !", Toast.LENGTH_SHORT ).show();
             return;
         }
-        if (myGoogleMap!=null) {
-            myGoogleMap.setMyLocationEnabled( true );
-            // Set Marker...
-//            setMapMarker( myGoogleMap.getMyLocation().getLatitude(), myGoogleMap.getMyLocation().getLongitude(), "My Location" );
-        }else{
-            Toast.makeText( getContext(), "Preparing...", Toast.LENGTH_SHORT ).show();
+        if (myGoogleMap == null){
+            return;
         }
+
+        // Set My Location....
+        myGoogleMap.setMyLocationEnabled( true );
+        myGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
+        setMyLocation();
 
     }
 
@@ -328,6 +364,42 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
                     break;
                 }
             }
+        }
+    }
+
+    @Override
+    public void onLoadingOrderResponse(boolean isComplete) {
+        if (isComplete){
+            // Initital weight....
+//            mapLayout = 75;
+//            orderLayout = 25;
+
+            if (currentOrderListModelList.size() > 0){
+                upDownImageBtn.setVisibility( View.VISIBLE );
+                textViewNoOrder.setVisibility( View.GONE );
+                if(shippingProductRecycler.getVisibility() != View.VISIBLE)
+                    shippingProductRecycler.setVisibility( View.VISIBLE );
+                // Adaptor...
+                if (shippingOrderAdaptor != null){
+                    shippingOrderAdaptor.notifyDataSetChanged();
+//                    shippingOrderAdaptor = new ShippingOrderAdaptor( this, this, currentOrderListModelList, this );
+//                    shippingProductRecycler.setAdapter( shippingOrderAdaptor );
+                }
+                // Notify..
+
+                if (currentLayoutState == NO_ORDER_STATE || currentLayoutState == EXTENDED_STATE ){
+                    setCurrentLayoutState( currentLayoutState, NORMAL_STATE );
+                }
+            }else{
+                upDownImageBtn.setVisibility( View.GONE );
+                shippingProductRecycler.setVisibility( View.GONE );
+                textViewNoOrder.setVisibility( View.VISIBLE );
+                textViewNoOrder.setText( "You don't have current orders" );
+
+                setCurrentLayoutState( currentLayoutState, NO_ORDER_STATE );
+            }
+        }else{
+            showToast( "Failed to load your orders, check your internet connection !" );
         }
     }
 
@@ -461,8 +533,40 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
                 polylineData.getPolyline().setZIndex(0);
             }
         }
+    }
 
+    private void onGetDirectionInMap(@Nullable String latitude,@Nullable String longitude, @Nullable String addressLine){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage("Want to open Google Map?")
+                .setCancelable(true)
+                .setPositiveButton("Yes", (dialog, id) -> {
+//                    String latitude = String.valueOf(marker.getPosition().latitude);
+//                    String longitude = String.valueOf(marker.getPosition().longitude);
+                    Uri gmmIntentUri;
 
+                    if (addressLine != null){
+                        gmmIntentUri = Uri.parse("google.navigation:q=" + addressLine);
+                        //Uri gmmIntentUri = Uri.parse("google.navigation:q=Taronga+Zoo,+Sydney+Australia");
+                    }else {
+                        gmmIntentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
+                    }
+
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+
+                    try{
+                        if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                            startActivity(mapIntent);
+                        }
+                    }catch (NullPointerException e){
+//                                Log.e(TAG, "onClick: NullPointerException: Couldn't open map." + e.getMessage() );
+                        mainListener.showToast(  "Couldn't open map! Not found Map Application." );
+                    }
+                    dialog.dismiss();
+                } )
+                .setNegativeButton("No", (dialog, id) -> dialog.dismiss() );
+        final AlertDialog alert = builder.create();
+        alert.show();
     }
 
 
@@ -472,7 +576,6 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
         Log.d("OnMapReady", "Map is Ready!");
         myGoogleMap = map;
 //        setMyMap( 0, 0 );
-
 //        map.addMarker( new MarkerOptions().position( new LatLng( 0, 0 ) ).title( "Marker" ) );
         setMyLocationBtn();
         // Set On Info Window Click Active..
@@ -484,17 +587,22 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
 
     @Override
     public void onResume() {
-        if (shippingOrderAdaptor!=null){
-            shippingOrderAdaptor.notifyDataSetChanged();
-        }
+
+        onLoadingOrderResponse(true);
+
+        setMyLocationBtn();
+
         mMapView.onResume();
         super.onResume();
     }
 
     @Override
     public void onStart() {
+        setMyLocationBtn();
         super.onStart();
         mMapView.onStart();
+        // on Set Fragment...
+        onStartFragment();
     }
 
     @Override
@@ -522,6 +630,29 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
     }
 
 // ========= Google Maps and Methods...====================================================
+
+    // Get Last Location...
+    private void setMyLocation() {
+        try {
+            Task <Location> locationResult = mFusedLocationClient.getLastLocation();
+            locationResult.addOnCompleteListener( task -> {
+                if (task.isSuccessful()) {
+                    try{
+                        // Set the map's camera position to the current location of the device.
+                        Location location = task.getResult();
+                        LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(currentLatLng, 18);
+//                    myGoogleMap.moveCamera(update);
+                        myGoogleMap.animateCamera( update );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            } );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public void showToast(String msg) {
@@ -560,4 +691,68 @@ public class MainMapsFragment extends Fragment implements OnMapReadyCallback, Ma
     public void setNextFragment(Fragment fragment) {
         mainListener.setNextFragment( fragment );
     }
+
+    // Change Height ...
+    private void updateWeight(ConstraintLayout firstLayout, int in1, int fin1, ConstraintLayout secondLayout, int in2, int fin2 ){
+        ViewWeightAnimationWrapper mapAnimationWrapper = new ViewWeightAnimationWrapper(firstLayout);
+        ObjectAnimator mapAnimation = ObjectAnimator.ofFloat(mapAnimationWrapper,
+                "weight",
+                in1, // Initial
+                fin1); // Target
+        mapAnimation.setDuration(600);
+
+        ViewWeightAnimationWrapper recyclerAnimationWrapper = new ViewWeightAnimationWrapper(secondLayout);
+        ObjectAnimator recyclerAnimation = ObjectAnimator.ofFloat(recyclerAnimationWrapper,
+                "weight",
+                in2,
+                fin2);
+        recyclerAnimation.setDuration(600);
+
+        mapAnimation.start();
+        recyclerAnimation.start();
+    }
+
+    private void setCurrentLayoutState( int currentStage, int targetStage ){
+        switch (currentStage){
+            case NORMAL_STATE :
+                switch (targetStage){
+                    case EXTENDED_STATE :// if user extends...
+                        updateWeight( mapLayout, 75, 25, orderLayout, 25, 75 );
+                        break;
+                    case NO_ORDER_STATE : // If No Order are exist...
+                        updateWeight( mapLayout, 75, 90, orderLayout, 25, 10 );
+                        break;
+                    default: break;
+                }
+                break;
+            case EXTENDED_STATE :
+                switch (targetStage){
+                    case NORMAL_STATE : // if user compressed...
+                        updateWeight( mapLayout, 25, 75, orderLayout, 75, 25 );
+                        break;
+                    case NO_ORDER_STATE :  // If No Order are exist...
+                        updateWeight( mapLayout, 25, 90, orderLayout, 75, 10 );
+                        break;
+                    default: break;
+                }
+                break;
+            case NO_ORDER_STATE :
+                switch (targetStage){
+                    case NORMAL_STATE :// if user compressed...
+                        updateWeight( mapLayout, 90, 75, orderLayout, 10, 25 );
+                        break;
+                    case EXTENDED_STATE :  // if user extends...
+                        updateWeight( mapLayout, 90, 20, orderLayout, 10, 75 );
+                        break;
+                    default: break;
+                }
+                break;
+            default: break;
+        }
+        currentLayoutState = targetStage;
+    }
+
+
+
+
 }

@@ -14,6 +14,7 @@ import ean.ecom.shipping.OnFragmentSetListener;
 import ean.ecom.shipping.R;
 import ean.ecom.shipping.database.DBQuery;
 
+import static ean.ecom.shipping.SetFragmentActivity.FRAGMENT_MY_ORDER;
 import static ean.ecom.shipping.SetFragmentActivity.FRAGMENT_NOTIFICATION_ORDERS;
 import static ean.ecom.shipping.SetFragmentActivity.FRAGMENT_ORDER_VIEW;
 
@@ -56,6 +57,9 @@ public class OrderViewActivity extends AppCompatActivity implements OnFragmentSe
                 break;
             case FRAGMENT_ORDER_VIEW:
                 orderModel = DBQuery.currentOrderListModelList.get( modelIndex );
+                break;
+            case FRAGMENT_MY_ORDER:
+                orderModel = DBQuery.myOrdersList.get( modelIndex );
                 break;
             default:
                 // Show toast not found...!

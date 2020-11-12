@@ -1,8 +1,12 @@
 package ean.ecom.shipping.main.order;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,12 +34,14 @@ import ean.ecom.shipping.R;
 import ean.ecom.shipping.database.OrderQuery;
 import ean.ecom.shipping.other.DialogsClass;
 import ean.ecom.shipping.other.StaticMethods;
+import ean.ecom.shipping.other.StaticValues;
 
 import static ean.ecom.shipping.database.DBQuery.currentOrderListModelList;
 import static ean.ecom.shipping.database.DBQuery.firebaseFirestore;
 import static ean.ecom.shipping.database.DBQuery.orderNotificationList;
 import static ean.ecom.shipping.main.MainMapsFragment.shippingOrderAdaptor;
 import static ean.ecom.shipping.notification.NotificationFragment.orderNotificationAdaptor;
+import static ean.ecom.shipping.other.StaticMethods.getAddressLine;
 import static ean.ecom.shipping.other.StaticValues.ORDER_ACCEPTED;
 import static ean.ecom.shipping.other.StaticValues.ORDER_CANCELLED;
 import static ean.ecom.shipping.other.StaticValues.ORDER_CODE_ACCEPTED;
@@ -139,12 +145,12 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
         loadDataThread.start();
         showDialog();
 
-        setOnButtonClick(view);
+        setOnButtonClick( );
 
         return view;
     }
 
-    private void setOnButtonClick(View view){
+    private void setOnButtonClick( ){
         // accept order button clicked
         acceptDeliveryBtn.setOnClickListener( v->{
             acceptDeliveryBtn.setEnabled( false );
@@ -152,6 +158,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
             Map<String, Object> updateMap = new HashMap();
             updateMap.put( "delivery_status", ORDER_PROCESS );
             updateMap.put( "delivery_by_uid", USER_ACCOUNT.getUser_mobile() );
+            updateMap.put( "accepted_pickup_timestamp", StaticMethods.getCrrTimestamp() );
             acceptOrderThread = new Thread( new OrderQuery.UpdateOrderStatus(updateMap, deliveryID, USER_ACCOUNT.getUser_city_code(), ORDER_CODE_ACCEPTED, this) );
             acceptOrderThread.start();
         } );
@@ -184,27 +191,45 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
 
         // Direction : Shop Direction button clicked...
         getShopDirectionBtn.setOnClickListener( v->{
-            showToast( "Not found!" ); // TODO : Direction...
+            // Shop Direction...
+            if (currentOrderListModel.getShop_geo_point() != null){
+                onGetDirectionInMap( String.valueOf( currentOrderListModel.getShop_geo_point().getLatitude() ),
+                        String.valueOf( currentOrderListModel.getShop_geo_point().getLongitude() ) , null );
+            }else{
+                String addressLine = getAddressLine( currentOrderListModel.getShop_address() );
+                onGetDirectionInMap(  null, null, addressLine );
+            }
         } );
         // Direction : Customer Direction button clicked...
         getShippingDirectionBtn.setOnClickListener( v->{
-            showToast( "Not found!" ); // TODO: Direction...
+            // Shipping Direction...
+            if (currentOrderListModel.getShipping_geo_point() != null){
+                onGetDirectionInMap( String.valueOf( currentOrderListModel.getShipping_geo_point().getLatitude() ),
+                        String.valueOf( currentOrderListModel.getShipping_geo_point().getLongitude() ) , null );
+            }else{
+                String addressLine = getAddressLine( currentOrderListModel.getShipping_address() );
+                onGetDirectionInMap(  null, null, addressLine );
+            }
         } );
+
+
     }
 
     /// Set Data...
     private void setOrderData(){
-        String dStatus = orderModel.getDeliveryStatus();
+        String dStatus = orderModel.getDelivery_status();
         if (dStatus.equals( ORDER_ACCEPTED )){
             setDefaultLayout( VIEW_ORDER_FROM_NOTIFICATION );
         }else if( dStatus.equals( ORDER_PICKED )){
             setDefaultLayout( VIEW_ORDER_PICKED_ORDERS );
         }else if( dStatus.equals( ORDER_SUCCESS )){
             setDefaultLayout( VIEW_ORDER_FROM_COMPLETE_ORDERS );
+            // hide Shipping direction Button...
+            getShippingDirectionBtn.setVisibility( View.INVISIBLE );
         }else if( dStatus.equals( ORDER_PROCESS )){
             setDefaultLayout( VIEW_ORDER_FROM_CURRENT_ORDERS );
             // Get OTP ..
-            orderQuery.getOtpQuery( orderModel.getDeliveryID() );
+            orderQuery.getOtpQuery( orderModel.getDelivery_id() );
         }else{
             // Default...
             acceptDeliveryBtn.setVisibility( View.VISIBLE );
@@ -220,7 +245,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
         layoutManager.setOrientation( RecyclerView.VERTICAL );
         recyclerOrderListView.setLayoutManager( layoutManager );
 
-        OrderItemListAdaptor adaptor = new OrderItemListAdaptor( orderModel.getOrderProductItemsList() );
+        OrderItemListAdaptor adaptor = new OrderItemListAdaptor( orderModel.getProducts_list() );
         recyclerOrderListView.setAdapter( adaptor );
         adaptor.notifyDataSetChanged();
     }
@@ -274,15 +299,15 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
     public void onReceiveDetails( OrderListModel orderListModel ) {
         orderModel = orderListModel;
 
-        tvOrderID.setText( orderModel.getOrderID() );
+        tvOrderID.setText( orderModel.getOrder_id() );
         tvShopName.setText( shopName );
         tvShopId.setText( shopID );
-        tvShopAddress.setText( orderModel.getShippingAddress() );
+        tvShopAddress.setText( orderModel.getOrder_delivery_address() );
         // Shipping...
-        tvShippingAddress.setText( orderModel.getShippingAddress() );
+        tvShippingAddress.setText( orderModel.getOrder_delivery_address() );
 
         /**  Add Listener... Only Call when Order not success! */
-        if (! orderModel.getDeliveryStatus().equals( ORDER_SUCCESS )){
+        if (! orderModel.getDelivery_status().equals( ORDER_SUCCESS )){
             orderQuery.onOrderUpdateListener( this, deliveryID );
         }
         // Set Other Data....
@@ -327,7 +352,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
             if (acceptOrderThread != null && acceptOrderThread.isAlive()){
                 acceptOrderThread.suspend();
             }
-            orderID = orderModel.getOrderID();
+            orderID = orderModel.getOrder_id();
             //  Check whether Order accepted by you or not?
 //            String resultUID = result.get( "UID" ).toString();
             if(result.get( "delivery_by_uid" ).toString().equals( USER_ACCOUNT.getUser_mobile() )){
@@ -425,7 +450,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
         }else{ // Cancel By Delivery Boy...
             // Set UI...
             setDefaultLayout( VIEW_ORDER_FROM_NOTIFICATION );
-            orderModel.setDeliveryStatus( ORDER_ACCEPTED );
+            orderModel.setDelivery_status( ORDER_ACCEPTED );
 
             // Remove from MyOrder Document...
             orderQuery.deleteMyDeliveryID( this, deliveryID, USER_ACCOUNT.getUser_mobile() );
@@ -470,11 +495,15 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
                 setDefaultLayout( VIEW_ORDER_FROM_COMPLETE_ORDERS );
                 int crrListIndex = getIndexOfCurrentListModel( orderID );
                 if (crrListIndex >= 0){
-                    currentOrderListModelList.get( crrListIndex ).setDelivery_status( ORDER_SUCCESS );
+//                    currentOrderListModelList.get( crrListIndex ).setDelivery_status( ORDER_SUCCESS );
+                    // Remove From Current Order List...
+                    currentOrderListModelList.remove( crrListIndex );
                 }
-//                else{
-//                    currentOrderListModelList.add( currentOrderListModel );
-//                }
+                /// Current Order List Notify...
+                if (shippingOrderAdaptor!= null){
+                    shippingOrderAdaptor.notifyDataSetChanged();
+                }
+                // No Need : Add this model object into MyOrderList... ( Cause we are load all the orders when user open my order list View )
                 break;
             default:
                 break;
@@ -494,7 +523,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
             case 2: // Failed to update at Delivery list...
                 showToast( "your Internet Connection is very slow... !" );
                 // retry...Request to Update into My Delivery document...
-                orderModel.setDeliveryStatus( ORDER_SUCCESS );
+                orderModel.setDelivery_status( ORDER_SUCCESS );
                 currentOrderListModel.setDelivery_status( ORDER_SUCCESS );
                 orderQuery.addOrderInCurrentDelivery( this, currentOrderListModel, deliveryID, null, true );
                 break;
@@ -507,11 +536,13 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
                 setDefaultLayout( VIEW_ORDER_FROM_COMPLETE_ORDERS );
                 int crrListIndex = getIndexOfCurrentListModel( orderID );
                 if (crrListIndex >= 0){
-                    currentOrderListModelList.get( crrListIndex ).setDelivery_status( ORDER_SUCCESS );
+                    // Remove From Current Order List...
+                    currentOrderListModelList.remove( crrListIndex );
                 }
-//                else{
-//                    currentOrderListModelList.add( currentOrderListModel );
-//                }
+                /// Current Order List Notify...
+                if (shippingOrderAdaptor!= null){
+                    shippingOrderAdaptor.notifyDataSetChanged();
+                }
                 // Request to Delete Delivery Document...
                 orderQuery.deleteDeliveryIdQuery(this, deliveryID, true);
             case 0: // Failed to Verify OTP...
@@ -580,6 +611,41 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
 
     }
 
+    private void onGetDirectionInMap(@Nullable String latitude, @Nullable String longitude, @Nullable String addressLine){
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage("Want to open Google Map?")
+                .setCancelable(true)
+                .setPositiveButton("Yes", (dialog, id) -> {
+//                    String latitude = String.valueOf(marker.getPosition().latitude);
+//                    String longitude = String.valueOf(marker.getPosition().longitude);
+                    Uri gmmIntentUri;
+
+                    if (addressLine != null){
+                        gmmIntentUri = Uri.parse("google.navigation:q=" + addressLine);
+                        //Uri gmmIntentUri = Uri.parse("google.navigation:q=Taronga+Zoo,+Sydney+Australia"); // Address form : Taronga+Zoo,+Sydney+Australia
+                    }else {
+                        gmmIntentUri = Uri.parse("google.navigation:q=" + latitude + "," + longitude);
+                    }
+
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+
+                    try{
+                        if (mapIntent.resolveActivity(getActivity().getPackageManager()) != null) {
+                            startActivity(mapIntent);
+                        }
+                    }catch (NullPointerException e){
+//                                Log.e(TAG, "onClick: NullPointerException: Couldn't open map." + e.getMessage() );
+                        showToast(  "Couldn't open map! Not found Map Application." );
+                    }
+                    dialog.dismiss();
+                } )
+                .setNegativeButton("No", (dialog, id) -> dialog.dismiss() );
+        final AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+
     /**  Order Status
      *          1. WAITING - ( For Accept )
      *          2. ACCEPTED - ( Preparing )
@@ -616,37 +682,7 @@ public class OrderViewFragment extends Fragment implements GetOrderDetailsListen
 
                             DocumentSnapshot documentSnapshot = task.getResult();
                             // Assign new OrderListModel...
-                            OrderListModel orderListModel = new OrderListModel();
-
-                            orderListModel.setOrderID( documentSnapshot.get( "order_id" ).toString() );
-                            orderListModel.setDeliveryStatus( documentSnapshot.get( "delivery_status" ).toString() );
-                            orderListModel.setPayMode( documentSnapshot.get( "pay_mode" ).toString() );
-
-                            orderListModel.setDeliveryCharge( documentSnapshot.get( "delivery_charge" ).toString() );
-                            // billing_amounts
-                            orderListModel.setBillingAmounts( documentSnapshot.get( "billing_amounts" ).toString() );
-                            // total_amounts
-                            orderListModel.setProductAmounts( documentSnapshot.get( "total_amounts" ).toString() );
-
-                            orderListModel.setCustAuthID( documentSnapshot.get( "order_by_auth_id" ).toString() );
-                            orderListModel.setCustName( documentSnapshot.get( "order_by_name" ).toString() );
-                            orderListModel.setCustMobile( documentSnapshot.get( "order_by_mobile" ).toString() );
-
-                            orderListModel.setShippingName( documentSnapshot.get( "order_accepted_by" ).toString() );
-                            orderListModel.setShippingAddress( documentSnapshot.get( "order_delivery_address" ).toString() );
-                            orderListModel.setShippingPinCode( documentSnapshot.get( "order_delivery_pin" ).toString() );
-
-                            orderListModel.setOrderDate( documentSnapshot.get( "order_date" ).toString() );
-                            orderListModel.setOrderDay( documentSnapshot.get( "order_day" ).toString() );
-                            orderListModel.setOrderTime( documentSnapshot.get( "order_time" ).toString() );
-
-//                            orderListModel.setDeliverySchedule( documentSnapshot.get( "delivery_schedule_time" ).toString() );
-
-//                            long no_of_products = (long)documentSnapshot.get( "no_of_products" );
-
-                            List<OrderProductsModel> orderSubList = (ArrayList <OrderProductsModel>) documentSnapshot.getData().get( "products_list" );
-
-                            orderListModel.setOrderProductItemsList( orderSubList );
+                            OrderListModel orderListModel = documentSnapshot.toObject( OrderListModel.class );
 
                             // add Model Item in the List...
                             listener.onReceiveDetails( orderListModel );

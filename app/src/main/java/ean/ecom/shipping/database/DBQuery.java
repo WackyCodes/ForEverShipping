@@ -24,11 +24,14 @@ import java.util.Map;
 
 import ean.ecom.shipping.MainActivity;
 import ean.ecom.shipping.main.order.CurrentOrderListModel;
+import ean.ecom.shipping.main.order.CurrentOrderUpdateListener;
 import ean.ecom.shipping.notification.NotificationModel;
 import ean.ecom.shipping.other.StaticValues;
+import ean.ecom.shipping.profile.myorder.MyOrderListener;
 
 import static ean.ecom.shipping.main.MainMapsFragment.shippingOrderAdaptor;
 import static ean.ecom.shipping.notification.NotificationFragment.orderNotificationAdaptor;
+import static ean.ecom.shipping.other.StaticValues.USER_ACCOUNT;
 
 /**
  * Created by Shailendra (WackyCodes) on 21/08/2020 03:40
@@ -36,10 +39,10 @@ import static ean.ecom.shipping.notification.NotificationFragment.orderNotificat
  */
 public class DBQuery {
 
-    public static FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+    public static final FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
     // get Current User Reference ...
     public static FirebaseUser currentUser = firebaseAuth.getCurrentUser();
-    public static FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
+    public static final FirebaseFirestore firebaseFirestore = FirebaseFirestore.getInstance();
 
     public static StorageReference storageReference = FirebaseStorage.getInstance().getReference();
     private static CurrentOrderListModel model;
@@ -79,6 +82,7 @@ public class DBQuery {
     public static List <NotificationModel> notificationModelList = new ArrayList <>();
     public static List <CurrentOrderListModel> currentOrderListModelList = new ArrayList <>();
     public static List <CurrentOrderListModel> orderNotificationList = new ArrayList <>();
+    public static List <CurrentOrderListModel> myOrdersList = new ArrayList <>();
     // Get Notify Every New Order...
     public static void getNewOrderNotification(String CITY_CODE) {
 
@@ -155,32 +159,55 @@ public class DBQuery {
                 } );
     }
 
-    public static void getCurrentOrderList(String userMobile){
+    public static void getCurrentOrderList(CurrentOrderUpdateListener listener, String userMobile){
         firebaseFirestore.collection( "DELIVERY_BOYS" )
                 .document( userMobile ).collection( "DELIVERY" )
                 .whereEqualTo( "delivery_status", "ACCEPTED" )
                 .get()
                 .addOnCompleteListener( task -> {
                     if (task.isSuccessful()){
-                        currentOrderListModelList = task.getResult().toObjects( CurrentOrderListModel.class );
-
-//                        for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()){
-//                            CurrentOrderListModel model  = (CurrentOrderListModel) documentSnapshot.getData();
-//                        }
-
-                        if (shippingOrderAdaptor!= null){
-                            shippingOrderAdaptor.notifyDataSetChanged();
+//                        currentOrderListModelList = task.getResult().toObjects( CurrentOrderListModel.class );
+                        for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()){
+                            CurrentOrderListModel model = documentSnapshot.toObject( CurrentOrderListModel.class );
+                            currentOrderListModelList.add( model );
+//                            if (shippingOrderAdaptor!= null){
+//                                shippingOrderAdaptor.notifyDataSetChanged();
+//                            }
                         }
 
+                        if (listener != null){
+                            listener.onLoadingOrderResponse( true );
+                        }
                     }else{
-
+                        if (listener != null){
+                            listener.onLoadingOrderResponse( false );
+                        }
                     }
                 } );
     }
 
+    public static void getMyOrderList( MyOrderListener listener, String userMobile){
+        // Listener...
+        firebaseFirestore.collection( "DELIVERY_BOYS" )
+                .document( userMobile )
+                .collection( "DELIVERY" )
+                .get()
+                .addOnCompleteListener( task -> {
+                    if (task.isSuccessful()){
+                        myOrdersList = task.getResult().toObjects( CurrentOrderListModel.class );
+                        listener.onLoadProductResponse();
+
+                    }else{
+                        listener.dismissDialog();
+                        listener.showToast( "Failed! Please check your Internet connection and try Again.." );
+                    }
+                } );
+
+    }
+
     // Get User Own Data Collection Ref..
     public static CollectionReference getMyCollectionRef( String collection ){
-        return firebaseFirestore.collection( "DELIVERY_BOY" ).document( currentUser.getUid() )
+        return firebaseFirestore.collection( "DELIVERY_BOYS" ).document( USER_ACCOUNT.getUser_mobile() )
                 .collection( collection );
     }
 

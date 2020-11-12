@@ -61,6 +61,7 @@ public class GetMapData extends AsyncTask <String, Void, String> {
             urlConnection.setConnectTimeout( 15000 );
             urlConnection.setReadTimeout( 20000 );
             // Reading data from url
+//            urlConnection.getResponseCode();
             iStream = urlConnection.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(iStream));
             StringBuffer sb = new StringBuffer();

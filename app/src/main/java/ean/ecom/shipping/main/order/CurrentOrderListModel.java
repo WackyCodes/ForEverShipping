@@ -3,6 +3,7 @@ package ean.ecom.shipping.main.order;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.util.HashMap;
@@ -39,6 +40,10 @@ public class CurrentOrderListModel implements Parcelable {
     private GeoPoint shop_geo_point;
     private GeoPoint shipping_geo_point;
     private GeoPoint my_geo_point;
+
+    private Timestamp accepted_pickup_timestamp;
+    private Timestamp delivery_timestamp;
+
 
     public CurrentOrderListModel() {
     }
@@ -137,6 +142,24 @@ public class CurrentOrderListModel implements Parcelable {
         this.shipping_geo_point = shipping_geo_point;
     }
 
+    public Timestamp getAccepted_pickup_timestamp() {
+        return accepted_pickup_timestamp;
+    }
+
+    public void setAccepted_pickup_timestamp(Timestamp accepted_pickup_timestamp) {
+        this.accepted_pickup_timestamp = accepted_pickup_timestamp;
+    }
+
+    public Timestamp getDelivery_timestamp() {
+        return delivery_timestamp;
+    }
+
+    public void setDelivery_timestamp(Timestamp delivery_timestamp) {
+        this.delivery_timestamp = delivery_timestamp;
+    }
+
+
+
     public GeoPoint getMy_geo_point() {
         return my_geo_point;
     }
@@ -162,6 +185,7 @@ public class CurrentOrderListModel implements Parcelable {
         return map;
     }
 
+
     protected CurrentOrderListModel(Parcel in) {
         order_id = in.readString();
         delivery_id = in.readString();
@@ -171,6 +195,8 @@ public class CurrentOrderListModel implements Parcelable {
         shipping_address = in.readString();
         order_time = in.readString();
         delivery_status = in.readString();
+        accepted_pickup_timestamp = in.readParcelable( Timestamp.class.getClassLoader() );
+        delivery_timestamp = in.readParcelable( Timestamp.class.getClassLoader() );
     }
 
     public static final Creator <CurrentOrderListModel> CREATOR = new Creator <CurrentOrderListModel>() {
@@ -200,8 +226,7 @@ public class CurrentOrderListModel implements Parcelable {
         dest.writeString( shipping_address );
         dest.writeString( order_time );
         dest.writeString( delivery_status );
+        dest.writeParcelable( accepted_pickup_timestamp, flags );
+        dest.writeParcelable( delivery_timestamp, flags );
     }
-
-
-
 }

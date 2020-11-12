@@ -36,8 +36,11 @@ import com.google.android.material.navigation.NavigationView;
 import de.hdodenhof.circleimageview.CircleImageView;
 import ean.ecom.shipping.database.DBQuery;
 import ean.ecom.shipping.main.MainMapsFragment;
+import ean.ecom.shipping.profile.myorder.MyOrdersActivity;
 import ean.ecom.shipping.service.LocationService;
 
+import static ean.ecom.shipping.database.DBQuery.currentOrderListModelList;
+import static ean.ecom.shipping.database.DBQuery.currentUser;
 import static ean.ecom.shipping.other.StaticValues.ERROR_DIALOG_REQUEST;
 import static ean.ecom.shipping.other.StaticValues.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
 import static ean.ecom.shipping.other.StaticValues.PERMISSIONS_REQUEST_ENABLE_GPS;
@@ -101,6 +104,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 //        drawerName.setText( ADMIN_DATA_MODEL.getAdminName() ); // Admin Name...
 //        drawerEmail.setText( ADMIN_DATA_MODEL.getAdminEmail() ); // Admin Email...
+
+//        // Get Current Order List...
+//        if (currentOrderListModelList.size() == 0){
+//            DBQuery.getCurrentOrderList( USER_ACCOUNT.getUser_mobile() );
+//        }
 
     }
 
@@ -176,16 +184,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
         drawer.closeDrawer( GravityCompat.START );
-
         mainNavItemId = menuItem.getItemId();
-
         // ------- On Item Click...
         // Home Nav Option...
         if ( mainNavItemId == R.id.nav_home ){
             // index - 0
-            getSupportActionBar().setTitle( R.string.app_name );
+            getSupportActionBar().setTitle( R.string.app_title );
             return true;
-        }else
+        }else if(mainNavItemId == R.id.menu_my_account){
+            // GO TO MY DELIVERY / ORDERS ACTIVITY
+//            startActivity( new Intent(MainActivity.this, MyOrdersActivity.class ) );
+            showToast( "My Account" );
+            return false;
+        }else if(mainNavItemId == R.id.menu_my_delivery){
+            // GO TO MY DELIVERY / ORDERS ACTIVITY
+            startActivity( new Intent(MainActivity.this, MyOrdersActivity.class ) );
+            return false;
+        }
+        else
             // Bottom Options...
             if ( mainNavItemId == R.id.menu_log_out ){
                 // index - 5
@@ -229,16 +245,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return false;
     }
 
+    private void setNavUnChecked(){
+        navigationView.getMenu().getItem( 0 ).setChecked( true );
+//        navigationView.getMenu().getItem( 1 ).setChecked( false );
+//        navigationView.getMenu().getItem( 2 ).setChecked( false );
+//        navigationView.getMenu().getItem( 3 ).setChecked( false );
+    }
+
     // Fragment Transaction...
     public void setFragment( Fragment fragment){
         if (mainActivityManager == null){
             mainActivityManager = getSupportFragmentManager();
         }
-        FragmentTransaction fragmentTransaction = mainActivityManager.beginTransaction();
-        fragmentTransaction.add( mainFrameLayout.getId(),fragment );
-        fragmentTransaction.commit();
+        try{
+            FragmentTransaction fragmentTransaction = mainActivityManager.beginTransaction();
+            fragmentTransaction.add( mainFrameLayout.getId(),fragment );
+            fragmentTransaction.commit();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
-
 
     @Override
     protected void onResume() {
@@ -252,6 +278,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 getLocationPermission();
             }
         }
+
+        // Set UnChecked for other nav options...
+        setNavUnChecked();
     }
 
     //----------------------------
@@ -261,7 +290,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Set Map Fragment...
         setFragment(  new MainMapsFragment ( this ) );
 //        Toast.makeText( this, "Fragment Set!", Toast.LENGTH_SHORT ).show();
-        Log.d( "SetMapFragment : " ,"Main Fragment is Set !");
     }
 
     // Checking all the Google Map Permission ------------------------------------------------------

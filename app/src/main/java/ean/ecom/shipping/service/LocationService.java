@@ -26,8 +26,10 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.util.HashMap;
@@ -85,7 +87,7 @@ public class LocationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand: called.");
+//        Log.d(TAG, "onStartCommand: called.");
         getLocation();
         return START_NOT_STICKY;
     }
@@ -173,6 +175,25 @@ public class LocationService extends Service {
 
     }
 
-
+    private void getDeviceLocation() {
+        try {
+            if (true) {
+                Task <Location> locationResult = mFusedLocationClient.getLastLocation();
+                locationResult.addOnCompleteListener( task -> {
+                    if (task.isSuccessful()) {
+                        // Set the map's camera position to the current location of the device.
+                        Location location = task.getResult();
+                        LatLng currentLatLng = new LatLng(location.getLatitude(),
+                                location.getLongitude());
+//                            CameraUpdate update = CameraUpdateFactory.newLatLngZoom(currentLatLng,
+//                                    DEFAULT_ZOOM);
+//                            googleMap.moveCamera(update);
+                    }
+                } );
+            }
+        } catch (SecurityException e) {
+            Log.e("Exception: %s", e.getMessage());
+        }
+    }
 
 }

@@ -1,5 +1,7 @@
 package ean.ecom.shipping.main;
 
+import androidx.annotation.Nullable;
+
 import com.google.firebase.firestore.GeoPoint;
 
 /**
@@ -12,10 +14,10 @@ interface MapAction {
     void setMapMarker(double latitude, double longitude, String title);
 
     // Draw path...
-    void drawPathLine(GeoPoint fromPoint, GeoPoint toPoint);
+    void drawPathLine(@Nullable GeoPoint fromPoint,@Nullable  GeoPoint toPoint, @Nullable String addressLine);
 
     interface OnDrawMarker{
-        void onDrawingPathLine(MapAction mapAction, GeoPoint fromPoints, GeoPoint toPoints);
+        void onDrawingPathLine(MapAction mapAction, GeoPoint fromPoints, GeoPoint toPoints, @Nullable String addressLine);
         void onSetMarker( MapAction mapAction, GeoPoint markPoints, String title);
     }
 

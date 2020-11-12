@@ -1,16 +1,22 @@
 package ean.ecom.shipping.main;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.maps.model.Marker;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestoreException;
@@ -18,6 +24,7 @@ import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ean.ecom.shipping.OnFragmentSetListener;
@@ -29,6 +36,7 @@ import ean.ecom.shipping.other.StaticValues;
 
 import static ean.ecom.shipping.SetFragmentActivity.FRAGMENT_ORDER_VIEW;
 import static ean.ecom.shipping.database.DBQuery.getMyCollectionRef;
+import static ean.ecom.shipping.other.StaticMethods.getAddressLine;
 
 /**
  * Created by Shailendra (WackyCodes) on 26/09/2020 17:31
@@ -76,6 +84,7 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
         private TextView shippingAddressText;
 
         private TextView getShopDirection;
+        private TextView getShippingDirection;
         private ImageView viewOrderDetailsBtn;
 
         public ViewHolder(@NonNull View itemView) {
@@ -86,50 +95,41 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
             shippingAddressText = itemView.findViewById( R.id.shipping_address_text );
 
             getShopDirection = itemView.findViewById( R.id.get_shop_direction );
+            getShippingDirection = itemView.findViewById( R.id.get_shipping_direction );
             viewOrderDetailsBtn = itemView.findViewById( R.id.view_details_image_btn );
 
         }
 
         private void setData( final CurrentOrderListModel model, int position){
 
-            orderText.setText( "Order ID: " + model.getDelivery_id() );
+            orderText.setText( "Order ID: " + model.getOrder_id() );
             shopAddressText.setText( model.getShop_address() );
             shippingAddressText.setText( model.getShipping_address() );
 
-
             // Set Visibility of Shop Direction Button...
-            if (model.getDelivery_status() != null && model.getDelivery_status().toUpperCase().equals( "PROCESS" )){
-                getShopDirection.setVisibility( View.VISIBLE );
-                // If Order Not picked Yet..! ( orderStatus == ACCEPTED )
-                onSetMarker( mapActionFragment, model.getShop_geo_point(), model.getShop_address() );
-            }
-            else{
-                getShopDirection.setVisibility( View.INVISIBLE );
-                // If Order picked and out for delivery..! ( orderStatus == PICKED )
-                if (model.getShipping_geo_point() != null){
-                    onSetMarker( mapActionFragment, model.getShipping_geo_point(), model.getShipping_address() );
+            if (model.getDelivery_status() != null ){
+                if (model.getDelivery_status().toUpperCase().equals( "PROCESS" )){
+                    setDirectionButton( true );
+                    // If Order Not picked Yet..! ( orderStatus == ACCEPTED )
+                    if (model.getShop_geo_point() != null){
+                        onSetMarker( mapActionFragment, model.getShop_geo_point(), model.getShop_address() );
+                    }
+
+                }
+                else if (model.getDelivery_status().toUpperCase().equals( "PICKED" )){
+                    setDirectionButton( false );
+                    // If Order picked and out for delivery..! ( orderStatus == PICKED )
+                    if (model.getShipping_geo_point() != null){
+                        onSetMarker( mapActionFragment, model.getShipping_geo_point(), model.getShipping_address() );
+                    }
+                }
+                else{
+                    setDirectionButton( false );
                 }
             }
 
-            // Get Shop Direction... From My Location...!
-            getShopDirection.setOnClickListener( v -> onDrawingPathLine( mapActionFragment, StaticValues.MY_GEO_POINTS, model.getShop_geo_point() ) );
-            // Order Details..
-            viewOrderDetailsBtn.setOnClickListener( v -> {
-//                parentListener.setNextFragment( new OrderViewFragment( parentListener, model,  null ));
-//                parentListener.setTitle(  "Order View" );
-                onOrderViewClick( position );
-            });
-            // On Item Click...
-            itemView.setOnClickListener( v -> {
-//                    onDrawLineClick( model );
-
-                onOrderViewClick( position );
-            } );
-
-        }
-        // Drawing Line Between... Two points...!
-        private void onDrawLineClick( CurrentOrderListModel model ){
-              /*
+             /*
+             || Drawing Line between Two Points ....
                 *  3. PACKED - ( Waiting for Delivery ) READY_TO_DELIVERY
                 *  4. PROCESS  - When Any Delivery Boy Accept to Delivering...
                 *  5. PICKED - ( On Delivery ) OUT_FOR_DELIVERY...
@@ -139,14 +139,42 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
                 Show the path between Shop and Shipping address...
                 and if any Order has been Picked then show the path between user Location and Shipping Location...!
              */
-            if (model.getDelivery_status().toUpperCase().equals( "PROCESS" )){
-                onDrawingPathLine( mapActionFragment, model.getShop_geo_point(), model.getShipping_geo_point() );
 
-            }else if (model.getDelivery_status().toUpperCase().equals( "PICKED" )){
-                onDrawingPathLine( mapActionFragment, StaticValues.MY_GEO_POINTS, model.getShipping_geo_point() );
+            // Get Shop Direction... From My Location...!
+            getShopDirection.setOnClickListener( v -> {
+                if (model.getShop_geo_point() != null){
+                    onDrawingPathLine( mapActionFragment, StaticValues.MY_GEO_POINTS, model.getShop_geo_point(), null );
+                }else{
+                    String addressLine = getAddressLine( model.getShop_address() );
+                    onDrawingPathLine( mapActionFragment, StaticValues.MY_GEO_POINTS, model.getShop_geo_point(), addressLine );
+                }
 
+            } );
+            // Get Shipping Direction... From My Location...!
+            getShippingDirection.setOnClickListener( v -> {
+                if (model.getShipping_geo_point() != null){
+                    onDrawingPathLine( mapActionFragment, StaticValues.MY_GEO_POINTS, model.getShipping_geo_point(), null );
+                }else{
+                    String addressLine = getAddressLine( model.getShipping_address() );
+                    onDrawingPathLine( mapActionFragment, StaticValues.MY_GEO_POINTS, model.getShipping_geo_point(), addressLine );
+                }
+
+            } );
+            // Order Details..// On Item Click...
+            itemView.setOnClickListener( v -> {
+//                    onDrawLineClick( model );
+                onOrderViewClick( position );
+            } );
+
+        }
+        // set Direction button view
+        private void setDirectionButton( boolean isShopDirection){
+            if (isShopDirection){
+                getShopDirection.setVisibility( View.VISIBLE );
+                getShippingDirection.setVisibility( View.GONE );
             }else{
-                onDrawingPathLine( mapActionFragment, new GeoPoint( 23.29900000,76.00023100 ), model.getShipping_geo_point() );
+                getShopDirection.setVisibility( View.GONE );
+                getShippingDirection.setVisibility( View.VISIBLE );
             }
         }
 
@@ -158,8 +186,8 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
         }
 
         @Override
-        public void onDrawingPathLine(MapAction mapAction, GeoPoint fromPoints, GeoPoint toPoints) {
-            mapAction.drawPathLine( fromPoints, toPoints );
+        public void onDrawingPathLine(MapAction mapAction, GeoPoint fromPoints, GeoPoint toPoints, @Nullable String addressLine) {
+            mapAction.drawPathLine( fromPoints, toPoints, addressLine );
         }
 
         @Override
@@ -187,6 +215,9 @@ public class ShippingOrderAdaptor extends RecyclerView.Adapter<ShippingOrderAdap
                     }
                 } );
     }
+
+
+
 
 
 }

@@ -11,4 +11,6 @@ public interface CurrentOrderUpdateListener {
 
     void onCurrentOrderUpdates(String deliveryID, String updateStatus);
 
+    void onLoadingOrderResponse( boolean isComplete );
+
 }

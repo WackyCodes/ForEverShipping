@@ -71,11 +71,11 @@ public class OrderItemListAdaptor extends RecyclerView.Adapter<OrderItemListAdap
 
 
         private void setData(int position){
-            OrderProductsModel model = new OrderProductsModel();
-            model.setData( (Map <String, Object>)  orderProductsModelList.get( position ) );
+            OrderProductsModel model =  orderProductsModelList.get( position );
+//            model.setData( (Map <String, Object>)  orderProductsModelList.get( position ) );
 
             Glide.with( itemView.getContext() ).load( model.getProductImage() )
-                    .apply( new RequestOptions().placeholder( R.drawable.ic_baseline_account_circle_24 ) ).into( pImage );
+                    .apply( new RequestOptions().placeholder( R.drawable.ic_baseline_photo_24 ) ).into( pImage );
 
             pName.setText( model.getProductName() );
             pPrice.setText( "Rs." + model.getProductSellingPrice() + "/-" );

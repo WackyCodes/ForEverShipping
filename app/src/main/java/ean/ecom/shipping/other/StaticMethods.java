@@ -188,15 +188,19 @@ public class StaticMethods {
         return returnPrice;
     }
 
-    public static String getTimeFromNow( String dateData, String timeData ){
-        String timing =  " " + dateData;
+    public static String getTimeFromNow( Date date ){
+
+        SimpleDateFormat tempFormat = new SimpleDateFormat( "dd/MM/yyyy", Locale.getDefault());
+        String timing =  tempFormat.format( date );
         try
         {
             SimpleDateFormat format = new SimpleDateFormat( "yyyy/MM/dd HH:mm:ss", Locale.getDefault());
 //            format.applyPattern( "yyyy/MM/ddXHH:mm:ss" );
-            Date past = format.parse(dateData + " " + timeData );
+//            Date past = format.parse(dateData + " " + timeData );
+
+            Date fromDate = format.parse( format.format( date ) );
             Date now = format.parse( format.format( new Date() ) );
-            long diff = now.getTime() - past.getTime();
+            long diff = now.getTime() - fromDate.getTime();
             /*
             1000 milliseconds = 1 second
             60 seconds = 1 minute
@@ -239,6 +243,22 @@ public class StaticMethods {
         } finally {
             return timing;
         }
+    }
+
+
+    // get address Line
+    public static String getAddressLine( String addressLine ){
+        String link = null;
+        String[] strings = addressLine.split( " " );
+        for (String s : strings){
+            if (link != null){
+                link = link.trim() + "+" + s.trim();
+            }else{
+                link = s.trim();
+            }
+        }
+        assert link != null;
+        return link.trim();
     }
 
 

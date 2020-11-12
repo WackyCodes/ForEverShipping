@@ -10,7 +10,7 @@ import ean.ecom.shipping.profile.User;
  */
 public class StaticValues {
 
-    public static String APP_VERSION = "em-1-01"; // ev-1-01
+    public static String APP_VERSION = "s_1_20_1"; // v 1.20.1
 
     public static final User USER_ACCOUNT = new User();
 

@@ -1,315 +1,372 @@
 package ean.ecom.shipping.main.order;
 
-import java.util.List;
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.GeoPoint;
+
+import java.util.ArrayList;
 
 /**
  * Created by Shailendra (WackyCodes) on 27/09/2020 11:05
  * ( To Know more, Click : https://linktr.ee/wackycodes )
  */
-public class OrderListModel {
+public class OrderListModel implements Parcelable {
 
-    private String orderID;
+    private String order_id; //  orderID
+    // Order Time...
+    private Timestamp order_timestamp; //  orderTimestamp
 
-    // User Information...
-    private String custAuthID;
-    private String custName;
-    private String custMobile;
-
-    private String payMode;
-
-    // Order Timing...
-    private String orderDate;
-    private String orderDay;
-    private String orderTime;
+    // Order List Sub Item...
+    private ArrayList <OrderProductsModel> products_list;  // cartOrderSubItemModelList
 
     // Billing ...
-    private String deliveryCharge;
-    private String billingAmounts;
-    private String productAmounts;
+    private String delivery_charge; // deliveryCharge
+    private String billing_amounts; // billing_amounts
+    private String product_amounts; //  productAmounts
+    private String total_amounts; // total product's amounts...  totalAmounts
+    private String saving_amounts; // savingAmounts
+
+    private String pay_mode; //  payMode
+    private String payment_id; //  payment_id
 
     // Shipping Name And Address...
-    private String shippingName;
-    private String shippingAddress;
-    private String shippingPinCode;
+    private String order_accepted_by; // shippingName
+    private String order_delivery_address; //  shippingAddress
+    private String order_delivery_pin; //  shippingPinCode
+    private GeoPoint shipping_geo_point;
+    private String order_by_auth_id;
+    private String order_by_mobile;
+    private String order_by_name;
+
+    private String order_accepted_otp; //  || acceptOrderOTP
 
     // Delivery Status...
-    private String deliveryStatus;
-    private String deliverySchedule;
+    private String delivery_status; // orderStatus
+//    private String delivery_schedule_time;
 
     // Delivery Info and Address...
-    private String deliveryID; // new
-    private String deliveredDate;
-    private String deliveredDay;
-    private String deliveredTime;
-    private String deliveredByAuthID;
-    private String deliveredByName;
-    private String deliveredByMobile;
-    private String outForDeliveryOTP; // new
+    // Load Delivery Boy information.. | Load When User View Details..
+    private String delivery_id; //  delivery_id
+    private String delivery_by_uid; //  deliveredByAuthID
+    private String delivery_by_name; // deliveredByName
+    private String delivery_by_mobile; // deliveredByMobile
+    private String delivery_vehicle_no;
+    private Timestamp delivery_timestamp;
 
-    //  Order Item List...
-    private List<OrderProductsModel> orderProductItemsList;
-
+    private boolean is_rated_to_delivery_boy = false;
+    private String delivery_boy_rate_star;
+    private String delivery_boy_rate_text;
 
 
     public OrderListModel() {
     }
 
-    public String getOrderID() {
-        return orderID;
+
+    protected OrderListModel(Parcel in) {
+        order_id = in.readString();
+        order_timestamp = in.readParcelable( Timestamp.class.getClassLoader() );
+        products_list = in.createTypedArrayList( OrderProductsModel.CREATOR );
+        delivery_charge = in.readString();
+        billing_amounts = in.readString();
+        product_amounts = in.readString();
+        total_amounts = in.readString();
+        saving_amounts = in.readString();
+        pay_mode = in.readString();
+        payment_id = in.readString();
+        order_accepted_by = in.readString();
+        order_delivery_address = in.readString();
+        order_delivery_pin = in.readString();
+        order_by_auth_id = in.readString();
+        order_by_mobile = in.readString();
+        order_by_name = in.readString();
+        order_accepted_otp = in.readString();
+        delivery_status = in.readString();
+        delivery_id = in.readString();
+        delivery_by_uid = in.readString();
+        delivery_by_name = in.readString();
+        delivery_by_mobile = in.readString();
+        delivery_vehicle_no = in.readString();
+        delivery_timestamp = in.readParcelable( Timestamp.class.getClassLoader() );
+        is_rated_to_delivery_boy = in.readByte() != 0;
+        delivery_boy_rate_star = in.readString();
+        delivery_boy_rate_text = in.readString();
     }
 
-    public void setOrderID(String orderID) {
-        this.orderID = orderID;
-    }
-
-    public String getCustAuthID() {
-        return custAuthID;
-    }
-
-    public void setCustAuthID(String custAuthID) {
-        this.custAuthID = custAuthID;
-    }
-
-    public String getCustName() {
-        return custName;
-    }
-
-    public void setCustName(String custName) {
-        this.custName = custName;
-    }
-
-    public String getCustMobile() {
-        return custMobile;
-    }
-
-    public void setCustMobile(String custMobile) {
-        this.custMobile = custMobile;
-    }
-
-    public String getPayMode() {
-        return payMode;
-    }
-
-    public void setPayMode(String payMode) {
-        this.payMode = payMode;
-    }
-
-    public String getOrderDate() {
-        return orderDate;
-    }
-
-    public void setOrderDate(String orderDate) {
-        this.orderDate = orderDate;
-    }
-
-    public String getOrderDay() {
-        return orderDay;
-    }
-
-    public void setOrderDay(String orderDay) {
-        this.orderDay = orderDay;
-    }
-
-    public String getOrderTime() {
-        return orderTime;
-    }
-
-    public void setOrderTime(String orderTime) {
-        this.orderTime = orderTime;
-    }
-
-    public String getDeliveryCharge() {
-        return deliveryCharge;
-    }
-
-    public void setDeliveryCharge(String deliveryCharge) {
-        this.deliveryCharge = deliveryCharge;
-    }
-
-    public String getBillingAmounts() {
-        return billingAmounts;
-    }
-
-    public void setBillingAmounts(String billingAmounts) {
-        this.billingAmounts = billingAmounts;
-    }
-
-    public String getProductAmounts() {
-        return productAmounts;
-    }
-
-    public void setProductAmounts(String productAmounts) {
-        this.productAmounts = productAmounts;
-    }
-
-    public String getShippingName() {
-        return shippingName;
-    }
-
-    public void setShippingName(String shippingName) {
-        this.shippingName = shippingName;
-    }
-
-    public String getShippingAddress() {
-        return shippingAddress;
-    }
-
-    public void setShippingAddress(String shippingAddress) {
-        this.shippingAddress = shippingAddress;
-    }
-
-    public String getShippingPinCode() {
-        return shippingPinCode;
-    }
-
-    public void setShippingPinCode(String shippingPinCode) {
-        this.shippingPinCode = shippingPinCode;
-    }
-
-    public String getDeliveryStatus() {
-        return deliveryStatus;
-    }
-
-    public void setDeliveryStatus(String deliveryStatus) {
-        this.deliveryStatus = deliveryStatus;
-    }
-
-    public String getDeliverySchedule() {
-        return deliverySchedule;
-    }
-
-    public void setDeliverySchedule(String deliverySchedule) {
-        this.deliverySchedule = deliverySchedule;
-    }
-
-    public String getDeliveryID() {
-        return deliveryID;
-    }
-
-    public void setDeliveryID(String deliveryID) {
-        this.deliveryID = deliveryID;
-    }
-
-    public String getDeliveredDate() {
-        return deliveredDate;
-    }
-
-    public void setDeliveredDate(String deliveredDate) {
-        this.deliveredDate = deliveredDate;
-    }
-
-    public String getDeliveredDay() {
-        return deliveredDay;
-    }
-
-    public void setDeliveredDay(String deliveredDay) {
-        this.deliveredDay = deliveredDay;
-    }
-
-    public String getDeliveredTime() {
-        return deliveredTime;
-    }
-
-    public void setDeliveredTime(String deliveredTime) {
-        this.deliveredTime = deliveredTime;
-    }
-
-    public String getDeliveredByAuthID() {
-        return deliveredByAuthID;
-    }
-
-    public void setDeliveredByAuthID(String deliveredByAuthID) {
-        this.deliveredByAuthID = deliveredByAuthID;
-    }
-
-    public String getDeliveredByName() {
-        return deliveredByName;
-    }
-
-    public void setDeliveredByName(String deliveredByName) {
-        this.deliveredByName = deliveredByName;
-    }
-
-    public String getDeliveredByMobile() {
-        return deliveredByMobile;
-    }
-
-    public void setDeliveredByMobile(String deliveredByMobile) {
-        this.deliveredByMobile = deliveredByMobile;
-    }
-
-//    public List <OrderProductItemModel> getOrderProductItemsList() {
-//        return orderProductItemsList;
-//    }
-//
-//    public void setOrderProductItemsList(List <OrderProductItemModel> orderProductItemsList) {
-//        this.orderProductItemsList = orderProductItemsList;
-//    }
-
-    public String getOutForDeliveryOTP() {
-        return outForDeliveryOTP;
-    }
-
-    public void setOutForDeliveryOTP(String outForDeliveryOTP) {
-        this.outForDeliveryOTP = outForDeliveryOTP;
-    }
-    public List <OrderProductsModel> getOrderProductItemsList() {
-        return orderProductItemsList;
-    }
-
-    public void setOrderProductItemsList(List <OrderProductsModel> orderProductItemsList) {
-        this.orderProductItemsList = orderProductItemsList;
-    }
-
-    /*
-
-     Map <String, Object> orderDetailMap = new HashMap <>();
-
-        orderDetailMap.put( "order_id",  orderID );
-
-        orderDetailMap.put( "delivery_status", "WAITING" );
-        orderDetailMap.put( "pay_mode", "COD" );
-
-        orderDetailMap.put( "delivery_charge", deliveryCharge );
-        orderDetailMap.put( "total_amounts", billingAmounts );
-        orderDetailMap.put( "saving_amounts", savingAmounts );
-        orderDetailMap.put( "billing_amounts", billingAmounts );
-
-        // Put User Info and Address..
-        orderDetailMap.put( "order_by_auth_id", orderByUserId );
-        orderDetailMap.put( "order_by_name", orderByUserName );
-        orderDetailMap.put( "order_by_mobile", orderByUserMobile );
-
-        orderDetailMap.put( "order_accepted_by", orderDeliveredName );
-        orderDetailMap.put( "order_delivery_address", orderDeliveryAddress );
-        orderDetailMap.put( "order_delivery_pin", orderDeliveryPin );
-        orderDetailMap.put( "order_date", orderDate );
-        orderDetailMap.put( "order_day", orderDay );
-        orderDetailMap.put( "order_time", orderTime );
-
-        orderDetailMap.put( "delivery_schedule_time", deliverySchedule );
-
-        // Get No_of_Product =
-        orderDetailMap.put( "no_of_products", temCartItemModelList.size() );
-
-        for (int x = 0; x < temCartItemModelList.size(); x++){
-            orderDetailMap.put( "product_id_" + x, temCartItemModelList.get( x ).getProductID() );
-            orderDetailMap.put( "product_image_" + x, temCartItemModelList.get( x ).getProductImage() );
-            orderDetailMap.put( "product_name_" + x, temCartItemModelList.get( x ).getProductName() );
-            orderDetailMap.put( "product_price_" + x, temCartItemModelList.get( x ).getProductSellingPrice() );
-            orderDetailMap.put( "product_qty_" + x, temCartItemModelList.get( x ).getProductQty() );
+    public static final Creator <OrderListModel> CREATOR = new Creator <OrderListModel>() {
+        @Override
+        public OrderListModel createFromParcel(Parcel in) {
+            return new OrderListModel( in );
         }
 
-        // Put Delivery Info and Address..
-//        orderDetailMap.put( "delivery_id", "" );
-//        orderDetailMap.put( "delivery_date", "" );
-//        orderDetailMap.put( "delivery_day", "" );
-//        orderDetailMap.put( "delivery_time", "" );
-//        orderDetailMap.put( "delivery_by_uid", "" );
-//        orderDetailMap.put( "delivery_by_name", "" );
-//        orderDetailMap.put( "delivery_by_mobile", "" );
+        @Override
+        public OrderListModel[] newArray(int size) {
+            return new OrderListModel[size];
+        }
+    };
 
-     */
+    @Override
+    public int describeContents() {
+        return 0;
+    }
 
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString( order_id );
+        dest.writeParcelable( order_timestamp, flags );
+        dest.writeTypedList( products_list );
+        dest.writeString( delivery_charge );
+        dest.writeString( billing_amounts );
+        dest.writeString( product_amounts );
+        dest.writeString( total_amounts );
+        dest.writeString( saving_amounts );
+        dest.writeString( pay_mode );
+        dest.writeString( payment_id );
+        dest.writeString( order_accepted_by );
+        dest.writeString( order_delivery_address );
+        dest.writeString( order_delivery_pin );
+        dest.writeString( order_by_auth_id );
+        dest.writeString( order_by_mobile );
+        dest.writeString( order_by_name );
+        dest.writeString( order_accepted_otp );
+        dest.writeString( delivery_status );
+        dest.writeString( delivery_id );
+        dest.writeString( delivery_by_uid );
+        dest.writeString( delivery_by_name );
+        dest.writeString( delivery_by_mobile );
+        dest.writeString( delivery_vehicle_no );
+        dest.writeParcelable( delivery_timestamp, flags );
+        dest.writeByte( (byte) (is_rated_to_delivery_boy ? 1 : 0) );
+        dest.writeString( delivery_boy_rate_star );
+        dest.writeString( delivery_boy_rate_text );
+    }
 
+    public String getOrder_id() {
+        return order_id;
+    }
+
+    public void setOrder_id(String order_id) {
+        this.order_id = order_id;
+    }
+
+    public Timestamp getOrder_timestamp() {
+        return order_timestamp;
+    }
+
+    public void setOrder_timestamp(Timestamp order_timestamp) {
+        this.order_timestamp = order_timestamp;
+    }
+
+    public ArrayList <OrderProductsModel> getProducts_list() {
+        return products_list;
+    }
+
+    public void setProducts_list(ArrayList <OrderProductsModel> products_list) {
+        this.products_list = products_list;
+    }
+
+    public String getDelivery_charge() {
+        return delivery_charge;
+    }
+
+    public void setDelivery_charge(String delivery_charge) {
+        this.delivery_charge = delivery_charge;
+    }
+
+    public String getBilling_amounts() {
+        return billing_amounts;
+    }
+
+    public void setBilling_amounts(String billing_amounts) {
+        this.billing_amounts = billing_amounts;
+    }
+
+    public String getProduct_amounts() {
+        return product_amounts;
+    }
+
+    public void setProduct_amounts(String product_amounts) {
+        this.product_amounts = product_amounts;
+    }
+
+    public String getTotal_amounts() {
+        return total_amounts;
+    }
+
+    public void setTotal_amounts(String total_amounts) {
+        this.total_amounts = total_amounts;
+    }
+
+    public String getSaving_amounts() {
+        return saving_amounts;
+    }
+
+    public void setSaving_amounts(String saving_amounts) {
+        this.saving_amounts = saving_amounts;
+    }
+
+    public String getPay_mode() {
+        return pay_mode;
+    }
+
+    public void setPay_mode(String pay_mode) {
+        this.pay_mode = pay_mode;
+    }
+
+    public String getPayment_id() {
+        return payment_id;
+    }
+
+    public void setPayment_id(String payment_id) {
+        this.payment_id = payment_id;
+    }
+
+    public String getOrder_accepted_by() {
+        return order_accepted_by;
+    }
+
+    public void setOrder_accepted_by(String order_accepted_by) {
+        this.order_accepted_by = order_accepted_by;
+    }
+
+    public String getOrder_delivery_address() {
+        return order_delivery_address;
+    }
+
+    public void setOrder_delivery_address(String order_delivery_address) {
+        this.order_delivery_address = order_delivery_address;
+    }
+
+    public String getOrder_delivery_pin() {
+        return order_delivery_pin;
+    }
+
+    public void setOrder_delivery_pin(String order_delivery_pin) {
+        this.order_delivery_pin = order_delivery_pin;
+    }
+
+    public GeoPoint getShipping_geo_point() {
+        return shipping_geo_point;
+    }
+
+    public void setShipping_geo_point(GeoPoint shipping_geo_point) {
+        this.shipping_geo_point = shipping_geo_point;
+    }
+
+    public String getOrder_by_auth_id() {
+        return order_by_auth_id;
+    }
+
+    public void setOrder_by_auth_id(String order_by_auth_id) {
+        this.order_by_auth_id = order_by_auth_id;
+    }
+
+    public String getOrder_by_mobile() {
+        return order_by_mobile;
+    }
+
+    public void setOrder_by_mobile(String order_by_mobile) {
+        this.order_by_mobile = order_by_mobile;
+    }
+
+    public String getOrder_by_name() {
+        return order_by_name;
+    }
+
+    public void setOrder_by_name(String order_by_name) {
+        this.order_by_name = order_by_name;
+    }
+
+    public String getOrder_accepted_otp() {
+        return order_accepted_otp;
+    }
+
+    public void setOrder_accepted_otp(String order_accepted_otp) {
+        this.order_accepted_otp = order_accepted_otp;
+    }
+
+    public String getDelivery_status() {
+        return delivery_status;
+    }
+
+    public void setDelivery_status(String delivery_status) {
+        this.delivery_status = delivery_status;
+    }
+
+    public String getDelivery_id() {
+        return delivery_id;
+    }
+
+    public void setDelivery_id(String delivery_id) {
+        this.delivery_id = delivery_id;
+    }
+
+    public String getDelivery_by_uid() {
+        return delivery_by_uid;
+    }
+
+    public void setDelivery_by_uid(String delivery_by_uid) {
+        this.delivery_by_uid = delivery_by_uid;
+    }
+
+    public String getDelivery_by_name() {
+        return delivery_by_name;
+    }
+
+    public void setDelivery_by_name(String delivery_by_name) {
+        this.delivery_by_name = delivery_by_name;
+    }
+
+    public String getDelivery_by_mobile() {
+        return delivery_by_mobile;
+    }
+
+    public void setDelivery_by_mobile(String delivery_by_mobile) {
+        this.delivery_by_mobile = delivery_by_mobile;
+    }
+
+    public String getDelivery_vehicle_no() {
+        return delivery_vehicle_no;
+    }
+
+    public void setDelivery_vehicle_no(String delivery_vehicle_no) {
+        this.delivery_vehicle_no = delivery_vehicle_no;
+    }
+
+    public Timestamp getDelivery_timestamp() {
+        return delivery_timestamp;
+    }
+
+    public void setDelivery_timestamp(Timestamp delivery_timestamp) {
+        this.delivery_timestamp = delivery_timestamp;
+    }
+
+    public boolean isIs_rated_to_delivery_boy() {
+        return is_rated_to_delivery_boy;
+    }
+
+    public void setIs_rated_to_delivery_boy(boolean is_rated_to_delivery_boy) {
+        this.is_rated_to_delivery_boy = is_rated_to_delivery_boy;
+    }
+
+    public String getDelivery_boy_rate_star() {
+        return delivery_boy_rate_star;
+    }
+
+    public void setDelivery_boy_rate_star(String delivery_boy_rate_star) {
+        this.delivery_boy_rate_star = delivery_boy_rate_star;
+    }
+
+    public String getDelivery_boy_rate_text() {
+        return delivery_boy_rate_text;
+    }
+
+    public void setDelivery_boy_rate_text(String delivery_boy_rate_text) {
+        this.delivery_boy_rate_text = delivery_boy_rate_text;
+    }
+
+    public static Creator <OrderListModel> getCREATOR() {
+        return CREATOR;
+    }
 }

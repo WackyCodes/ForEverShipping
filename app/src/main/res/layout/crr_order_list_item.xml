@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:padding="4dp"
-    android:layout_margin="4dp"
+    android:layout_margin="2dp"
     android:background="@drawable/back_rectangle_4dp_layout"
     android:elevation="4dp"
     android:layout_width="match_parent"
@@ -20,31 +20,53 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!--    //Get Shop Direction...-->
-    <TextView
-        android:id="@+id/get_shop_direction"
+    <LinearLayout
+        android:id="@+id/direction_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:drawableRight="@drawable/ic_baseline_directions_24"
-        android:drawableTint="@color/colorGreen"
-        android:drawablePadding="4dp"
-        android:text="Shop Direction"
-        android:textColor="@color/colorGreen"
-        android:textAlignment="center"
         app:layout_constraintBottom_toBottomOf="@+id/order_id_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:gravity="center_horizontal" />
+        android:orientation="vertical">
+
+        <!--    //Get Shop Direction...-->
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/get_shop_direction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:drawableRight="@drawable/ic_baseline_directions_24"
+            android:drawableTint="@color/colorGreen"
+            android:drawablePadding="4dp"
+            android:text="Shop Direction"
+            android:textColor="@color/colorGreen" />
+
+        <!--    //Get Shop Direction...-->
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/get_shipping_direction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:drawableRight="@drawable/ic_baseline_directions_24"
+            android:drawableTint="@color/colorBlue"
+            android:drawablePadding="4dp"
+            android:text="Shipping Direction"
+            android:textColor="@color/colorBlue"
+            android:textAlignment="center"
+            android:gravity="center_horizontal" />
+    </LinearLayout>
+
 
 <!--    // Shop Address...-->
-    <TextView
+    <ImageView
         android:id="@+id/shop_address_sample"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
         android:padding="2dp"
-        android:text="Shop Address :"
-        android:textColor="@color/colorBlack"
+        app:srcCompat="@drawable/ic_baseline_storefront_24"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/order_id_text" />
 
@@ -54,6 +76,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="2dp"
         android:padding="2dp"
+        android:textSize="14sp"
         android:text="Shop Address :"
         android:textColor="@color/colorPrimary"
         app:layout_constraintEnd_toStartOf="@+id/view_details_image_btn"
@@ -61,14 +84,13 @@
         app:layout_constraintTop_toTopOf="@+id/shop_address_sample" />
 
 <!--    // Shipping Address -->
-    <TextView
+    <ImageView
         android:id="@+id/shipping_address_sample"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
         android:padding="2dp"
-        android:text="Shipping Add :"
-        android:textColor="@color/colorBlack"
+        app:srcCompat="@drawable/ic_baseline_person_pin_24"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/shop_address_text" />
 
@@ -78,6 +100,7 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="2dp"
         android:padding="2dp"
+        android:textSize="14sp"
         android:text="Shipping Address :"
         android:textColor="@color/colorGreen"
         app:layout_constraintEnd_toStartOf="@+id/view_details_image_btn"
@@ -90,8 +113,9 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/get_shop_direction"
-        app:srcCompat="@drawable/ic_baseline_navigate_next_24" />
+        app:layout_constraintTop_toBottomOf="@+id/direction_layout"
+        app:srcCompat="@drawable/ic_baseline_navigate_next_24"
+        app:tint="@color/colorPrimary" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

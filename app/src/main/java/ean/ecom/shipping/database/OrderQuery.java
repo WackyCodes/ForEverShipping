@@ -16,10 +16,7 @@ import ean.ecom.shipping.main.order.GetOrderDetailsListener;
 import ean.ecom.shipping.other.StaticValues;
 
 import static ean.ecom.shipping.database.DBQuery.currentOrderListModelList;
-import static ean.ecom.shipping.database.DBQuery.currentUser;
 import static ean.ecom.shipping.database.DBQuery.firebaseFirestore;
-import static ean.ecom.shipping.main.MainMapsFragment.shippingOrderAdaptor;
-import static ean.ecom.shipping.other.StaticValues.ORDER_ACCEPTED;
 import static ean.ecom.shipping.other.StaticValues.ORDER_CODE_ACCEPTED;
 import static ean.ecom.shipping.other.StaticValues.ORDER_CODE_CANCEL;
 import static ean.ecom.shipping.other.StaticValues.ORDER_CODE_COMPLETE;

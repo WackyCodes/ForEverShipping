@@ -19,6 +19,7 @@ public class SetFragmentActivity extends AppCompatActivity implements OnFragment
     public static final int FRAGMENT_NOTIFICATION_OTHERS = 1;
     public static final int FRAGMENT_NOTIFICATION_ORDERS = 2;
     public static final int FRAGMENT_ORDER_VIEW = 3;
+    public static final int FRAGMENT_MY_ORDER = 4;
 
     public FrameLayout frameLayout;
     public static FragmentManager activityFragmentManager;
